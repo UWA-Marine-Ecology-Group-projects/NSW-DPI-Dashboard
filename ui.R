@@ -1,65 +1,16 @@
 ui <- page_navbar(
   title = div(
-    "Algal bloom data portal",
+    "NSW DPI Dashboard",
     favicon = "www/favicon.ico",
-    style = "display:flex; gap:10px; align-items:center; padding-right:15px; font-weight:bold; color:#0D576E;"
+    style = "display:flex; gap:10px; align-items:center; padding-right:15px; font-weight:bold; color:#063F5C;"
   ),
   
   tags$head(
-    tags$link(
       rel = "stylesheet",
       href = "https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap"
-    )
   ),
   
-  theme = bs_theme(
-    bootswatch = "minty",
-    secondary = "#5F7F8D",
-    primary   = "#5C5873",
-    success   = "#e10038",
-    
-    # Navbar styling (all Bootstrap variables)
-    # navbar_bg   = "#9CA9B3",     # background
-    # navbar_fg   = "#0D576E",     # link colour
-    # 
-    # navbar_bg = "#BBC4D2",
-    # # navbar_fg = "#0D576E",
-    
-    
-    navbar_bg = "#e6f0f5",
-    navbar_fg = "#0D576E",
-    navbar_hover_fg = "#083E4F",
-    navbar_brand_color = "#0D576E",
-    
-    
-    # navbar_hover_fg = "#083E4F", # link hover
-    # navbar_brand_color = "#0D576E",         # title colour
-    navbar_brand_hover_color = "#083E4F",    # title hover
-    
-    sidebar_bg = "#BBC4D2",
-    
-    # # Page background
-    fg = "black",
-    bg = "#F4F8FA",   # light blue-grey background
-    
-    base_font    = font_google("Barlow"),
-    heading_font = font_google("Barlow"),  # <-- THIS fixes h1-h6
-    code_font    = font_google("Barlow"),
-    
-    "table-bg" = "#4D788A",
-    "table-striped-bg" = "#9CA9B3",
-    "table-color" = "#0b1f24",
-    
-    # card_cap_bg    = "#0D576E",  # header background
-    # card_cap_color = "#ffffff",   # header text
-    
-    card_cap_bg = "#d8eaf0",
-    card_cap_color = "#0D576E",
-    card_bg = "#FFFFFF",
-    "card-border-width" = "1px",
-    "card-border-radius" = "1rem",
-    "card-box-shadow" = "0 4px 12px rgba(0,0,0,0.05)"
-  ),
+  theme = client_theme,
   
   # --- CSS: sticky navbar; sidebar map fills; right panel scrolls ---
   tags$head(
@@ -71,7 +22,7 @@ ui <- page_navbar(
 
   .navbar .nav-link.active {
   font-weight: 600;
-  border-bottom: 2px solid #0D576E;
+  border-bottom: 2px solid #063F5C;
   }
 
   
@@ -109,7 +60,7 @@ ui <- page_navbar(
 
 .modern-kpi {
   background-color: #FFFFFF !important;
-  border: 1px solid #0D576E !important;   /* teal border */
+  border: 1px solid #063F5C !important;   /* teal border */
   border-radius: 1rem !important;
   box-shadow: none !important;
 text-align:center; width:100%; 
@@ -117,7 +68,7 @@ text-align:center; width:100%;
 
 .value-box {
   background-color: #FFFFFF !important;
-  border: 2px solid #0D576E !important;
+  border: 2px solid #063F5C !important;
   border-radius: 1rem !important;
   box-shadow: none !important;
 }
@@ -131,7 +82,7 @@ text-align:center; width:100%;
 /* KPI numbers */
 .modern-kpi .pp-val,
 .modern-kpi .value-box-value {
-  color: #0D576E !important;
+  color: #063F5C !important;
   font-weight: 700;
   font-size: 1.4rem;
 }
@@ -146,7 +97,7 @@ text-align:center; width:100%;
 .modern-kpi .fa,
 .modern-kpi svg,
 .modern-kpi img {
-  color: #0D576E !important;
+  color: #063F5C !important;
   filter: none;
 }
 
@@ -325,7 +276,7 @@ tags$head(
     
     .kpi-title {
   font-weight: 600;
-  color: #0D576E;
+  color: #063F5C;
   margin-bottom: 1rem;
 }
 
@@ -344,107 +295,63 @@ nav_panel(
     col_widths = c(7, 5),
     
     div(
-      # h4("Algal bloom impacts on nearshore marine biodiversity monitoring progress"),
       
       div(class = "page-header",
           h3("Overview"),
-          h5("Algal bloom impacts on nearshore marine biodiversity monitoring progress", class = "text-muted")
+          h5("NSW DPI Dashboard", class = "text-muted")
       ),
-      
-      
-      # card(
-        # card_header("Monitoring progress for algal bloom response"),
+
       div(
         class = "kpi-row",
       layout_column_wrap(
         width = 1/4,   # 3 boxes on one row
         
-        twoValueBoxUI(
-          id          = "sites_progress",
-          title       = "Sites",
-          left_label  = "Planned",
-          right_label = "Completed",
-          icon        = div(class = "vb-icon-wrap", icon("magnifying-glass", class = "fa-xl", style = "color:#0D576E;")),
-          theme_color = NULL,
-          height = 150
-        ),
-        
-        twoValueBoxUI(
-          id          = "bruvs_progress",
-          title       = "BRUVS deployments",
-          left_label  = "Planned",
-          right_label = "Completed",
-          icon        = img(src = "teal_bruv.png",
-                            height = "80px"
-          ), #div(class = "vb-icon-wrap", icon("ship", class = "fa-xl")),
-          theme_color = NULL
-        ),
-        
-        twoValueBoxUI(
-          id          = "uvc_progress",
-          title       = "Dive transects",
-          left_label  = "Planned",
-          right_label = "Completed",
-          icon        = img(src = "teal_uvc.png",
-                            height = "80px"),
-          #div(class = "vb-icon-wrap", icon("video", class = "fa-xl")),
-          theme_color = NULL
-        ),
-        
-        value_box(class = "modern-kpi",
-          title       = "Locations completed",
-          value       = paste0(percent_completed, "%"),
-          theme_color = NULL,
-          showcase    = div(class = "vb-icon-wrap", icon("percent", class = "fa-xl", style = "color:#0D576E;"))
-        )#)
-      )),
-      
-      # hr(style = "opacity:0.1s5; margin-top:1rem; margin-bottom:2rem;"),
+        # twoValueBoxUI(
+        #   id          = "sites_progress",
+        #   title       = "Sites",
+        #   left_label  = "Planned",
+        #   right_label = "Completed",
+        #   icon        = div(class = "vb-icon-wrap", icon("magnifying-glass", class = "fa-xl", style = "color:#063F5C;")),
+        #   theme_color = NULL,
+        #   height = 150
+        # ),
+        # 
+        # twoValueBoxUI(
+        #   id          = "bruvs_progress",
+        #   title       = "BRUVS deployments",
+        #   left_label  = "Planned",
+        #   right_label = "Completed",
+        #   icon        = img(src = "teal_bruv.png",
+        #                     height = "80px"),
+        #   theme_color = NULL
+        # ),
+        # 
+        # twoValueBoxUI(
+        #   id          = "uvc_progress",
+        #   title       = "Dive transects",
+        #   left_label  = "Planned",
+        #   right_label = "Completed",
+        #   icon        = img(src = "teal_uvc.png",
+        #                     height = "80px"),
+        #   theme_color = NULL
+        # ),
+        # 
+        # value_box(class = "modern-kpi",
+        #   title       = "Locations completed",
+        #   value       = paste0(percent_completed, "%"),
+        #   theme_color = NULL,
+        #   showcase    = div(class = "vb-icon-wrap", icon("percent", class = "fa-xl", style = "color:#063F5C;"))
+        # )
+      )
+      ),
       
       card(
-        card_header("Portal Aims"),
+        card_header("Dashboard Aims"),
         card_body(
-          p(HTML("This portal provides a visual assessment of the ecological impacts of the recent harmful algal bloom using stereo-BRUV data uploaded to GlobalArchive.org. It summarises key fish community metrics—including total abundance, species richness, and other indicator responses—to compare conditions before the bloom (Pre-bloom) with those observed during and after the event (Bloom), these metrics are defined in <b>Table 1</b> below. The threshold levels are defined in <b>Table 2</b>.")),
-          # br(),
+          p(HTML("This dashboard provides a visual assessment ...")),
           p("By integrating standardised, quality-controlled BRUV annotations with clear temporal comparisons, the dashboard helps highlight shifts in community structure and supports evidence-based management decisions.")
         )
       ),
-      
-      # div(
-      #   h4("Portal Aims"),
-        # h6(HTML("This portal provides a visual assessment of the ecological impacts of the recent harmful algal bloom using stereo-BRUV data uploaded to GlobalArchive.org. It summarises key fish community metrics—including total abundance, species richness, and other indicator responses—to compare conditions before the bloom (Pre-bloom) with those observed during and after the event (Bloom), these metrics are defined in <b>Table 1</b> below. The threshold levels are defined in <b>Table 2</b>.
-        # 
-        #        </br></br>By integrating standardised, quality-controlled BRUV annotations with clear temporal comparisons, the dashboard helps highlight shifts in community structure and supports evidence-based management decisions."))),
-      
-      # br(),
-      # 
-      # layout_column_wrap(
-      #   width = 1/2,
-      #   div(
-      #     h5("Table 1. Definitions of fish indicator metrics"),
-      #     spinnerTableOutput("indicator_table")  # was: tableOutput("indicator_table")
-      #   ),
-      #   
-      #   div(
-      #     h5("Table 2. Impact assessment"),
-      #     spinnerTableOutput("pointer_table")    # was: tableOutput("pointer_table")
-      #   ),
-      # )
-      # 
-      layout_column_wrap(
-        width = 1/2,
-        
-        card(
-          card_header("Table 1. Definitions of fish indicator metrics"),
-          spinnerTableOutput("indicator_table")  # was: tableOutput("indicator_table")
-        ),
-        
-        card(
-          card_header("Table 2. Impact assessment"),
-          spinnerTableOutput("pointer_table")    # was: tableOutput("pointer_table")
-        )
-      )
-      
     ),
     
     
@@ -455,7 +362,7 @@ nav_panel(
         class = "map-full-wrapper",
         withSpinner(
           leafletOutput("map", height = "100%"),
-          color = getOption("spinner.color", default = "#0D576E"),
+          color = getOption("spinner.color", default = "#063F5C"),
           type = 6
         )
       )
@@ -465,7 +372,7 @@ nav_panel(
 ),
 
 nav_panel(
-  "Region Summary",
+  "Bioregion Summary",
   layout_sidebar(
     sidebar = sidebar(
       width = "350px",
@@ -514,7 +421,7 @@ nav_panel(
             class = "map-full-wrapper",
             withSpinner(
               leafletOutput("region_survey_effort", height = "100%"),
-              color = getOption("spinner.color", default = "#0D576E"),
+              color = getOption("spinner.color", default = "#063F5C"),
               type = 6
             )
           )
@@ -603,7 +510,7 @@ nav_panel(
               # style = "height:500px;",
               withSpinner(
                 plotOutput("region_common_pre", height = "100%"),
-                color = getOption("spinner.color", default = "#0D576E"),
+                color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
             ),
@@ -612,7 +519,7 @@ nav_panel(
               # style = "height:500px;",
               withSpinner(
                 plotOutput("region_common_post", height = "100%"),
-                color = getOption("spinner.color", default = "#0D576E"),
+                color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
             )
@@ -626,7 +533,7 @@ nav_panel(
 ),
 
 nav_panel(
-  "Location Summary",
+  "Marine Park Summary",
   layout_sidebar(
     sidebar = sidebar(
       width = "350px",
@@ -662,7 +569,7 @@ nav_panel(
             class = "map-full-wrapper",
             withSpinner(
               leafletOutput("location_survey_effort", height = "100%"),
-              color = getOption("spinner.color", default = "#0D576E"),
+              color = getOption("spinner.color", default = "#063F5C"),
               type = 6
             )
           )
@@ -743,7 +650,7 @@ nav_panel(
               class = "plot-full-wrapper",
               withSpinner(
                 plotOutput("location_common_pre", height = "100%"),
-                color = getOption("spinner.color", default = "#0D576E"),
+                color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
             ),
@@ -751,7 +658,7 @@ nav_panel(
               class = "plot-full-wrapper",
               withSpinner(
                 plotOutput("location_common_post", height = "100%"),
-                color = getOption("spinner.color", default = "#0D576E"),
+                color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
             )
@@ -766,20 +673,10 @@ nav_panel(
 
 nav_spacer(),
 
-
-nav_panel(
-  "Admin",
-  
-  h3("Campaigns included"),
-  
-  tableOutput("campaigns_table")
-  
-),
-
 nav_item(
   tags$div(
     style = "display:flex; gap:10px; align-items:center; padding-right:15px;",
-    tags$img(src = "dew_logo.png", height = "70px")
+    tags$img(src = "nsw_dpi_logo.jpg", height = "70px")
   )
 )
 )

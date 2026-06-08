@@ -1,0 +1,497 @@
+:root {
+  --client-navy: #063F5C;
+  --client-crimson: #A9173A;
+  --client-powder: #CBEDFD;
+  --client-teal: #67C7BB;
+  --client-blue: #087CC1;
+
+  --client-bg: #F6FBFE;
+  --client-surface: #FFFFFF;
+  --client-ink: #0B2533;
+  --client-muted: #5D7480;
+  --client-line: rgba(6, 63, 92, 0.16);
+
+  --client-radius: 0.85rem;
+  --client-shadow: 0 0.45rem 1.4rem rgba(6, 63, 92, 0.10);
+  --client-shadow-sm: 0 0.15rem 0.65rem rgba(6, 63, 92, 0.08);
+}
+
+/* Page foundation -------------------------------------------------------- */
+
+html,
+body {
+  background:
+    radial-gradient(circle at top right, rgba(203, 237, 253, 0.48), transparent 34rem),
+    linear-gradient(180deg, var(--client-bg) 0%, #FFFFFF 58%);
+  color: var(--client-ink);
+}
+
+a {
+  color: var(--client-blue);
+  font-weight: 600;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--client-navy);
+}
+
+/* Focus states: visible but not loud */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.selectize-input.focus {
+  outline: 3px solid rgba(8, 124, 193, 0.32);
+  outline-offset: 2px;
+}
+
+/* Navbar ---------------------------------------------------------------- */
+
+.navbar {
+  background: linear-gradient(
+    90deg,
+    var(--client-navy) 0%,
+    var(--client-blue) 100%
+  ) !important;
+  border-bottom: 4px solid var(--client-teal);
+  box-shadow: var(--client-shadow-sm);
+}
+
+.navbar .navbar-brand {
+  color: #FFFFFF !important;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.navbar .nav-link {
+  color: rgba(255, 255, 255, 0.86) !important;
+  font-weight: 650;
+  border-radius: 0.5rem;
+  margin-inline: 0.1rem;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: #FFFFFF !important;
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.navbar .nav-link.active {
+  box-shadow: inset 0 -3px 0 var(--client-teal);
+}
+
+/* Optional brand mark for title = div(class = "brand-lockup", ...) */
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.brand-mark {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: inline-block;
+  border-radius: 999px;
+  background: var(--client-teal);
+  box-shadow:
+    0 0 0 4px rgba(103, 199, 187, 0.24),
+    0 0 0 8px rgba(203, 237, 253, 0.18);
+}
+
+/* Sidebar / filters ----------------------------------------------------- */
+
+.sidebar {
+  background:
+    linear-gradient(180deg, rgba(203, 237, 253, 0.62), rgba(255, 255, 255, 0.92));
+  border-right: 1px solid var(--client-line);
+}
+
+.sidebar .form-label,
+.sidebar label,
+.control-label {
+  color: var(--client-navy);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.sidebar .help-block,
+.sidebar .form-text {
+  color: var(--client-muted);
+}
+
+/* Cards ---------------------------------------------------------------- */
+
+.card,
+.bslib-card {
+  background: var(--client-surface);
+  border: 1px solid var(--client-line);
+  border-radius: var(--client-radius);
+  box-shadow: var(--client-shadow-sm);
+  overflow: hidden;
+}
+
+.card:hover,
+.bslib-card:hover {
+  box-shadow: var(--client-shadow);
+}
+
+.card > .card-header,
+.bslib-card .card-header {
+  background:
+    linear-gradient(90deg, rgba(203, 237, 253, 0.72), rgba(103, 199, 187, 0.18));
+  color: var(--client-navy);
+  border-bottom: 1px solid var(--client-line);
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.card-title {
+  color: var(--client-navy);
+  font-weight: 800;
+}
+
+/* Use these classes on cards where useful:
+   card(class = "accent-blue", ...)
+   card(class = "accent-teal", ...)
+   card(class = "accent-crimson", ...)
+*/
+
+.card.accent-navy,
+.card.accent-blue,
+.card.accent-teal,
+.card.accent-crimson {
+  position: relative;
+}
+
+.card.accent-navy::before,
+.card.accent-blue::before,
+.card.accent-teal::before,
+.card.accent-crimson::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.32rem;
+}
+
+.card.accent-navy::before {
+  background: var(--client-navy);
+}
+
+.card.accent-blue::before {
+  background: var(--client-blue);
+}
+
+.card.accent-teal::before {
+  background: var(--client-teal);
+}
+
+.card.accent-crimson::before {
+  background: var(--client-crimson);
+}
+
+/* Value boxes ----------------------------------------------------------- */
+/* bslib value_box() supports title, value, showcase and theme arguments,
+   and bslib recommends layout_column_wrap()/layout_columns() for multiple
+   value boxes. */
+
+.bslib-value-box {
+  border-radius: var(--client-radius);
+  box-shadow: var(--client-shadow-sm);
+}
+
+.bslib-value-box .value-box-title {
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.bslib-value-box .value-box-value {
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+/* Optional wrappers:
+   div(class = "vb-navy", value_box(...))
+   div(class = "vb-teal", value_box(...))
+   div(class = "vb-crimson", value_box(...))
+*/
+
+.vb-navy .bslib-value-box {
+  background: linear-gradient(135deg, var(--client-navy), var(--client-blue));
+  border: 0;
+  color: #FFFFFF;
+}
+
+.vb-navy .bslib-value-box * {
+  color: inherit;
+}
+
+.vb-teal .bslib-value-box {
+  background:
+    linear-gradient(135deg, rgba(103, 199, 187, 0.92), rgba(203, 237, 253, 0.86));
+  border: 1px solid rgba(6, 63, 92, 0.14);
+  color: var(--client-navy);
+}
+
+.vb-teal .bslib-value-box * {
+  color: inherit;
+}
+
+.vb-crimson .bslib-value-box {
+  background:
+    linear-gradient(135deg, var(--client-crimson), #7E112B);
+  border: 0;
+  color: #FFFFFF;
+}
+
+.vb-crimson .bslib-value-box * {
+  color: inherit;
+}
+
+/* Buttons --------------------------------------------------------------- */
+
+.btn {
+  border-radius: 0.55rem;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background-color: var(--client-navy);
+  border-color: var(--client-navy);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background-color: var(--client-blue);
+  border-color: var(--client-blue);
+}
+
+.btn-secondary,
+.btn-success {
+  background-color: var(--client-teal);
+  border-color: var(--client-teal);
+  color: var(--client-navy);
+}
+
+.btn-secondary:hover,
+.btn-success:hover {
+  background-color: var(--client-navy);
+  border-color: var(--client-navy);
+  color: #FFFFFF;
+}
+
+.btn-info {
+  background-color: var(--client-blue);
+  border-color: var(--client-blue);
+  color: #FFFFFF;
+}
+
+.btn-danger,
+.btn-warning {
+  background-color: var(--client-crimson);
+  border-color: var(--client-crimson);
+  color: #FFFFFF;
+}
+
+.btn-outline-primary {
+  color: var(--client-navy);
+  border-color: var(--client-navy);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--client-navy);
+  border-color: var(--client-navy);
+  color: #FFFFFF;
+}
+
+/* Inputs ---------------------------------------------------------------- */
+
+.form-control,
+.form-select,
+.selectize-input {
+  border-color: rgba(6, 63, 92, 0.24);
+  border-radius: 0.55rem;
+  color: var(--client-ink);
+}
+
+.form-control:focus,
+.form-select:focus,
+.selectize-input.focus {
+  border-color: var(--client-blue);
+  box-shadow: 0 0 0 0.22rem rgba(8, 124, 193, 0.18);
+}
+
+.selectize-dropdown .active {
+  background-color: rgba(203, 237, 253, 0.72);
+  color: var(--client-navy);
+}
+
+/* Shiny sliders --------------------------------------------------------- */
+
+.irs--shiny .irs-bar,
+.irs--shiny .irs-single,
+.irs--shiny .irs-from,
+.irs--shiny .irs-to {
+  background: var(--client-blue) !important;
+  border-color: var(--client-blue) !important;
+}
+
+.irs--shiny .irs-handle {
+  border-color: var(--client-blue) !important;
+}
+
+.irs--shiny .irs-grid-text {
+  color: var(--client-muted);
+}
+
+/* Tables ---------------------------------------------------------------- */
+
+.table {
+  color: var(--client-ink);
+}
+
+.table thead th {
+  background-color: rgba(203, 237, 253, 0.78);
+  color: var(--client-navy);
+  border-bottom: 2px solid var(--client-teal);
+  font-weight: 800;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: rgba(203, 237, 253, 0.18);
+}
+
+.table-hover > tbody > tr:hover > * {
+  --bs-table-accent-bg: rgba(103, 199, 187, 0.14);
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+  border: 1px solid rgba(6, 63, 92, 0.24);
+  border-radius: 0.45rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background: var(--client-navy) !important;
+  border-color: var(--client-navy) !important;
+  color: #FFFFFF !important;
+}
+
+/* Alerts, badges, status chips ----------------------------------------- */
+
+.alert-info {
+  background-color: rgba(203, 237, 253, 0.78);
+  border-color: rgba(8, 124, 193, 0.28);
+  color: var(--client-navy);
+}
+
+.alert-success {
+  background-color: rgba(103, 199, 187, 0.28);
+  border-color: rgba(103, 199, 187, 0.65);
+  color: var(--client-navy);
+}
+
+.alert-warning,
+.alert-danger {
+  background-color: rgba(169, 23, 58, 0.10);
+  border-color: rgba(169, 23, 58, 0.36);
+  color: var(--client-crimson);
+}
+
+.badge.bg-info,
+.badge.bg-light {
+  background-color: var(--client-powder) !important;
+  color: var(--client-navy) !important;
+}
+
+.badge.bg-secondary,
+.badge.bg-success {
+  background-color: var(--client-teal) !important;
+  color: var(--client-navy) !important;
+}
+
+.badge.bg-danger,
+.badge.bg-warning {
+  background-color: var(--client-crimson) !important;
+  color: #FFFFFF !important;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 750;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.status-chip.good {
+  background: rgba(103, 199, 187, 0.30);
+  border-color: rgba(103, 199, 187, 0.70);
+  color: var(--client-navy);
+}
+
+.status-chip.info {
+  background: rgba(203, 237, 253, 0.82);
+  border-color: rgba(8, 124, 193, 0.24);
+  color: var(--client-navy);
+}
+
+.status-chip.alert {
+  background: rgba(169, 23, 58, 0.10);
+  border-color: rgba(169, 23, 58, 0.35);
+  color: var(--client-crimson);
+}
+
+/* Tabs ------------------------------------------------------------------ */
+
+.nav-tabs .nav-link {
+  color: var(--client-muted);
+  font-weight: 700;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--client-navy);
+  border-top: 3px solid var(--client-teal);
+  border-bottom-color: #FFFFFF;
+}
+
+.nav-pills .nav-link {
+  color: var(--client-navy);
+  font-weight: 700;
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--client-navy);
+  color: #FFFFFF;
+}
+
+/* Plot/card utility classes -------------------------------------------- */
+
+.plot-shell {
+  background: #FFFFFF;
+  border: 1px solid var(--client-line);
+  border-radius: var(--client-radius);
+  padding: 0.75rem;
+}
+
+.caption-muted {
+  color: var(--client-muted);
+  font-size: 0.86rem;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
