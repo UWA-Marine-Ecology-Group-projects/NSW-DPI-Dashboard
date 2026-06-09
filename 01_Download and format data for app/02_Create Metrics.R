@@ -29,14 +29,34 @@ length_samples <- bruv_metadata %>%
 
 total_abundance_samples <- bruv_count %>%
   dplyr::group_by(sample_url) %>%
-  dplyr::summarise(total_abundance = sum(count)) %>%
+  dplyr::summarise(value = sum(count)) %>%
   dplyr::full_join(count_samples) %>%
-  replace_na(list(total_abundance = 0))
+  replace_na(list(value = 0)) %>%
+  dplyr::mutate(metric = "total_abundance") %>%
+  dplyr::select(sample_url, metric, value)
 
 ## Species richness ----
+# TODO Make sure that all species are fish!!
 
 species_richness_samples <- bruv_count %>%
-  distinct(sample_url, )
-dplyr::group_by(sample_url) %>%
-  dplyr::summarise(species_richness = sum(count))
-  
+  distinct(sample_url, family, genus, species) %>%
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(value = n()) %>%
+  dplyr::full_join(count_samples) %>%
+  replace_na(list(value = 0)) %>%
+  dplyr::mutate(metric = "species_richness") %>%
+  dplyr::select(sample_url, metric)
+
+# CTI ----
+
+
+
+# BLT ----
+
+
+
+# Indicator Species -----
+# TODO start with top 50 most abundant
+
+# All metrics ----
+metrics <- bind_rows(total_abundance_samples, species_richness_samples)
