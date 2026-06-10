@@ -298,7 +298,7 @@ nav_panel(
       
       div(class = "page-header",
           h3("Overview"),
-          h5("NSW DPI Dashboard", class = "text-muted")
+          # h5("NSW DPI Dashboard", class = "text-muted")
       ),
       
       
@@ -317,13 +317,13 @@ nav_panel(
         font-weight: 700;
       }
 
-      .overview-value-box .value-box-showcase {
-        color: rgba(255,255,255,0.8);
-      }
+.overview-value-box .value-box-showcase {
+  color: rgba(255,255,255,0.7) !important;
+}
 
       .overview-value-box .value-box-value {
         font-size: 2.8rem;
-        font-weight: 700;
+        font-weight: 400;
       }
     "))
         ),
@@ -341,7 +341,7 @@ nav_panel(
           value_box(
             title = "Fish Counted",
             value = textOutput("num_fish"),
-            showcase = bs_icon("fish", size = "4em"),
+            showcase = icon("fish"),
             class = "overview-value-box"
           ),
           
@@ -359,66 +359,66 @@ nav_panel(
             class = "overview-value-box"
           ),
           
-          value_box(
-            title = "Depths Surveyed",
-            value = textOutput("depths_surveyed"),
-            showcase = bs_icon("arrows-expand", size = "4em"),
-            class = "overview-value-box"
-          ),
-          
-          value_box(
-            title = "Average Depth",
-            value = textOutput("average_depth"),
-            showcase = bs_icon("activity", size = "4em"),
-            class = "overview-value-box"
-          )
+          # value_box(
+          #   title = "Depths Surveyed",
+          #   value = textOutput("depths_surveyed"),
+          #   showcase = bs_icon("arrows-expand", size = "4em"),
+          #   class = "overview-value-box"
+          # ),
+          # 
+          # value_box(
+          #   title = "Average Depth",
+          #   value = textOutput("average_depth"),
+          #   showcase = bs_icon("activity", size = "4em"),
+          #   class = "overview-value-box"
+          # )
         )
       ),
       
 
-      div(
-        class = "kpi-row",
-      layout_column_wrap(
-        width = 1/4,   # 3 boxes on one row
-        
-        # twoValueBoxUI(
-        #   id          = "sites_progress",
-        #   title       = "Sites",
-        #   left_label  = "Planned",
-        #   right_label = "Completed",
-        #   icon        = div(class = "vb-icon-wrap", icon("magnifying-glass", class = "fa-xl", style = "color:#063F5C;")),
-        #   theme_color = NULL,
-        #   height = 150
-        # ),
-        # 
-        # twoValueBoxUI(
-        #   id          = "bruvs_progress",
-        #   title       = "BRUVS deployments",
-        #   left_label  = "Planned",
-        #   right_label = "Completed",
-        #   icon        = img(src = "teal_bruv.png",
-        #                     height = "80px"),
-        #   theme_color = NULL
-        # ),
-        # 
-        # twoValueBoxUI(
-        #   id          = "uvc_progress",
-        #   title       = "Dive transects",
-        #   left_label  = "Planned",
-        #   right_label = "Completed",
-        #   icon        = img(src = "teal_uvc.png",
-        #                     height = "80px"),
-        #   theme_color = NULL
-        # ),
-        # 
-        # value_box(class = "modern-kpi",
-        #   title       = "Locations completed",
-        #   value       = paste0(percent_completed, "%"),
-        #   theme_color = NULL,
-        #   showcase    = div(class = "vb-icon-wrap", icon("percent", class = "fa-xl", style = "color:#063F5C;"))
-        # )
-      )
-      ),
+      # div(
+      #   class = "kpi-row",
+      # layout_column_wrap(
+      #   width = 1/4,   # 3 boxes on one row
+      #   
+      #   # twoValueBoxUI(
+      #   #   id          = "sites_progress",
+      #   #   title       = "Sites",
+      #   #   left_label  = "Planned",
+      #   #   right_label = "Completed",
+      #   #   icon        = div(class = "vb-icon-wrap", icon("magnifying-glass", class = "fa-xl", style = "color:#063F5C;")),
+      #   #   theme_color = NULL,
+      #   #   height = 150
+      #   # ),
+      #   # 
+      #   # twoValueBoxUI(
+      #   #   id          = "bruvs_progress",
+      #   #   title       = "BRUVS deployments",
+      #   #   left_label  = "Planned",
+      #   #   right_label = "Completed",
+      #   #   icon        = img(src = "teal_bruv.png",
+      #   #                     height = "80px"),
+      #   #   theme_color = NULL
+      #   # ),
+      #   # 
+      #   # twoValueBoxUI(
+      #   #   id          = "uvc_progress",
+      #   #   title       = "Dive transects",
+      #   #   left_label  = "Planned",
+      #   #   right_label = "Completed",
+      #   #   icon        = img(src = "teal_uvc.png",
+      #   #                     height = "80px"),
+      #   #   theme_color = NULL
+      #   # ),
+      #   # 
+      #   # value_box(class = "modern-kpi",
+      #   #   title       = "Locations completed",
+      #   #   value       = paste0(percent_completed, "%"),
+      #   #   theme_color = NULL,
+      #   #   showcase    = div(class = "vb-icon-wrap", icon("percent", class = "fa-xl", style = "color:#063F5C;"))
+      #   # )
+      # )
+      # ),
       
       card(
         card_header("Dashboard Aims"),

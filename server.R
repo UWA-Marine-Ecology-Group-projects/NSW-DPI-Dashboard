@@ -1,19 +1,20 @@
 # --------------------------- shared helpers ----------------------------------
-base_map <- function(max_zoom = 20, current_zoom = 6) {
+base_map <- function(max_zoom = 20, current_zoom = 9) {
   leaflet() |>
     addTiles(options = tileOptions(minZoom = 4, max_zoom)) |>
-    setView(lng = 137.618521, lat = -34.25, current_zoom) |>
+    setView(lng = mean(nsw_bruv_data$bruv_metadata$longitude_dd), 
+            lat = mean_lat, current_zoom) |>
     addMapPane("polys",  zIndex = 410) |>
     addMapPane("points", zIndex = 420) |>
     # Use regular polygons for static layers:
-    addPolygons(
-      data = state_mp, 
-      color = "black", weight = 1,
-      fillColor = ~state.pal(zone), fillOpacity = 0.8,
-      group = "State Marine Parks",
-      popup = ~name,
-      options = pathOptions(pane = "polys")
-    ) |>
+    # addPolygons(
+    #   data = state_mp, 
+    #   color = "black", weight = 1,
+    #   fillColor = ~state.pal(zone), fillOpacity = 0.8,
+    #   group = "State Marine Parks",
+    #   popup = ~name,
+    #   options = pathOptions(pane = "polys")
+    # ) |>
     addPolygons(
       data = commonwealth.mp,
       color = "black", weight = 1,
@@ -23,20 +24,20 @@ base_map <- function(max_zoom = 20, current_zoom = 6) {
     ) %>%
     
     # Legends
-    addLegend(
-      pal = state.pal,
-      values = state_mp$zone,
-      opacity = 1,
-      title = "State Zones",
-      position = "bottomleft",
-      group = "State Marine Parks"
-    ) |>
+    # addLegend(
+    #   pal = state.pal,
+    #   values = state_mp$zone,
+    #   opacity = 1,
+    #   title = "State Zones",
+    #   position = "bottomright",
+    #   group = "State Marine Parks"
+    # ) |>
     addLegend(
       pal = commonwealth.pal,
       values = commonwealth.mp$zone,
       opacity = 1,
       title = "Australian Marine Park Zones",
-      position = "bottomleft",
+      position = "bottomright",
       group = "Australian Marine Parks"
     ) #|>
   # addLayersControl(
@@ -719,77 +720,39 @@ server <- function(input, output, session) {
   #   format_fn = as.character
   # )
   # 
-  # output$map <- renderLeaflet({
-  #   
-  #   method_cols <- c("BRUVs" = "#004DA7", "UVC" = "#C600FF")
-  #   pts <- ensure_sf_ll(hab_data$hab_combined_metadata)
-  #   
-  #   m <- base_map(current_zoom = 7) |>
-  #     # define panes with explicit stacking
-  #     addMapPane("points",    zIndex = 411) |>
-  #     addMapPane("regions",   zIndex = 412) |>
-  #     addMapPane("highlight", zIndex = 415) %>%
-  #     
-  #     leafgl::addGlPoints(
-  #       data = pts,
-  #       fillColor = method_cols[pts$method],
-  #       weight = 1,
-  #       popup = pts$popup,
-  #       group = "Sampling locations",
-  #       pane  = "points"
-  #     ) %>%
-  #     
-  #     # polygons ABOVE points
-  #     addPolygons(
-  #       data = regions_joined,
-  #       layerId = ~region,
-  #       label   = ~region,
-  #       color = ~hab_data$pal_factor(regions_joined$overall_impact),#"#444444",
-  #       weight = 5,
-  #       opacity = 1,
-  #       fillOpacity = 0, #0.7
-  #       fillColor = ~hab_data$pal_factor(regions_joined$overall_impact),
-  #       group = "Impact regions",
-  #       options = pathOptions(pane = "highlight"),
-  #       highlightOptions = highlightOptions(
-  #         color = "white",
-  #         weight = 6,
-  #         bringToFront = TRUE
-  #       )
-  #     ) |>
-  #     
-  #     addLegend(
-  #       "bottomright",
-  #       title  = "Overall Impact",
-  #       colors = c(unname(hab_data$pal_vals[hab_data$ordered_levels]), "grey"),
-  #       labels = c("High", "Medium","Low", "Surveys incomplete"),
-  #       opacity = 0.8,
-  #       group   = "Impact regions"
-  #     ) |>
-  #     
-  #     addLayersControl(
-  #       overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Impact regions", "Sampling locations"),
-  #       options = layersControlOptions(collapsed = FALSE),
-  #       position = "topright"
-  #     ) %>%
-  #     
-  #     hideGroup("Australian Marine Parks") |>
-  #     
-  #     hideGroup("Impact regions") |>
-  #     
-  #     addLegend(
-  #       "topright",
-  #       colors = unname(method_cols),
-  #       labels = names(method_cols),
-  #       title = "Survey method",
-  #       opacity = 1,
-  #       group = "Sampling locations",
-  #       layerId = "methodLegend"
-  #     ) 
-  #   
-  #   
-  #   m
-  # })
+  output$map <- renderLeaflet({
+
+    method_cols <- c("BRUVs" = "#004DA7", "UVC" = "#C600FF")
+    
+    pts <- (nsw_bruv_data$bruv_metadata) %>%
+      dplyr::mutate(method = "BRUVS")
+
+    m <- base_map(current_zoom = 6) |>
+      # define panes with explicit stacking
+      addMapPane("points",    zIndex = 411) |>
+      addMapPane("regions",   zIndex = 412) |>
+      addMapPane("highlight", zIndex = 415) %>%
+
+      leafgl::addGlPoints(
+        data = pts,
+        # fillColor = method_cols[pts$method],
+        weight = 1,
+        # popup = pts$popup,
+        group = "Sampling locations",
+        pane  = "points"
+      ) %>%
+
+      addLayersControl(
+        overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
+        options = layersControlOptions(collapsed = FALSE),
+        position = "topright"
+      ) %>%
+
+      hideGroup("Australian Marine Parks") 
+
+
+    m
+  })
   # 
   # 
   # # # Click handler

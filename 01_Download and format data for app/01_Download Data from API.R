@@ -32,11 +32,15 @@ bioregions <- st_transform(bioregions, 4326)
 # ## Load in data again to save time ----
 bruv_metadata <- readRDS("data/raw/metadata.RDS") 
 
+coords <- bruv_metadata %>%
+  select(sample_url, longitude_dd, latitude_dd)
+
 bruv_metadata_sf <- bruv_metadata %>%
   st_as_sf(coords = c("longitude_dd", "latitude_dd"), crs = 4326)
 
 bruv_metadata_nsw <- st_join(bruv_metadata_sf, bioregions) %>%
   dplyr::filter(!is.na(bioregion)) %>%
+  left_join(coords) %>%
   glimpse()
 
 unique(bruv_metadata_nsw$bioregion)

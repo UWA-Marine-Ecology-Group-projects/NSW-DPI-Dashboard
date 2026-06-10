@@ -41,6 +41,12 @@ source("R/mod_park_summary.R") # defines mod_park_summary_ui/server (contains se
 # load("app_data/plots.Rdata")
 load("app_data/nsw_bruv_data.Rdata") # TODO add RLS here too
 
+# Mid point for maps
+min_lat <- min(nsw_bruv_data$bruv_metadata$latitude_dd)
+max_lat <- max(nsw_bruv_data$bruv_metadata$latitude_dd)
+
+mean_lat <- (min_lat + max_lat)/2
+
 source("R/theme.R")
 
 # # List of campaigns ----
@@ -67,13 +73,13 @@ source("R/theme.R")
 # parks <- c("Encounter", "Sir Joseph Banks Group", "Southern Spencer Gulf", "Eastern Spencer Gulf", "Upper Gulf St Vincent", "Upper Spencer Gulf", "Lower Yorke Peninsula", "Franklin Harbor")
 # 
 # # Spatial files for maps ----
-# commonwealth.mp <- readRDS("app_data/spatial/commonwealth.mp.RDS") %>%
-#   st_as_sf() %>%
-#   dplyr::filter(NetName %in% "South-west") %>%
-#   dplyr::filter(ResName %in% c("Great Australian Bight",
-#                                "Southern Kangaroo Island",
-#                                "Western Eyre",
-#                                "Western Kangaroo Island"))
+commonwealth.mp <- readRDS("app_data/spatial/commonwealth.mp.RDS") %>%
+  st_as_sf() #%>%
+  # dplyr::filter(NetName %in% "South-west") %>%
+  # dplyr::filter(ResName %in% c("Great Australian Bight",
+  #                              "Southern Kangaroo Island",
+  #                              "Western Eyre",
+  #                              "Western Kangaroo Island"))
 # 
 # state_mp <- readRDS("app_data/spatial/sa_state_mp.RDS")
 # 
@@ -89,13 +95,13 @@ source("R/theme.R")
 # 
 # # unique(state.mp$zone_type)
 # 
-# commonwealth.pal <- colorFactor(c("#f6c1d9", # Sanctuary
-#                                   "#7bbc63", # National Park
-#                                   "#fdb930", # Recreational Use
-#                                   "#fff7a3", # Habitat Protection
-#                                   '#b9e6fb', # Multiple Use
-#                                   '#ccc1d6'# Special Purpose
-# ), commonwealth.mp$zone)
+commonwealth.pal <- colorFactor(c("#f6c1d9", # Sanctuary
+                                  "#7bbc63", # National Park
+                                  "#fdb930", # Recreational Use
+                                  "#fff7a3", # Habitat Protection
+                                  '#b9e6fb', # Multiple Use
+                                  '#ccc1d6'# Special Purpose
+), commonwealth.mp$zone)
 # 
 # unique(commonwealth.mp$zone)
 # 
