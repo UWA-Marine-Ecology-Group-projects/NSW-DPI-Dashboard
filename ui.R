@@ -375,51 +375,6 @@ nav_panel(
         )
       ),
       
-
-      # div(
-      #   class = "kpi-row",
-      # layout_column_wrap(
-      #   width = 1/4,   # 3 boxes on one row
-      #   
-      #   # twoValueBoxUI(
-      #   #   id          = "sites_progress",
-      #   #   title       = "Sites",
-      #   #   left_label  = "Planned",
-      #   #   right_label = "Completed",
-      #   #   icon        = div(class = "vb-icon-wrap", icon("magnifying-glass", class = "fa-xl", style = "color:#063F5C;")),
-      #   #   theme_color = NULL,
-      #   #   height = 150
-      #   # ),
-      #   # 
-      #   # twoValueBoxUI(
-      #   #   id          = "bruvs_progress",
-      #   #   title       = "BRUVS deployments",
-      #   #   left_label  = "Planned",
-      #   #   right_label = "Completed",
-      #   #   icon        = img(src = "teal_bruv.png",
-      #   #                     height = "80px"),
-      #   #   theme_color = NULL
-      #   # ),
-      #   # 
-      #   # twoValueBoxUI(
-      #   #   id          = "uvc_progress",
-      #   #   title       = "Dive transects",
-      #   #   left_label  = "Planned",
-      #   #   right_label = "Completed",
-      #   #   icon        = img(src = "teal_uvc.png",
-      #   #                     height = "80px"),
-      #   #   theme_color = NULL
-      #   # ),
-      #   # 
-      #   # value_box(class = "modern-kpi",
-      #   #   title       = "Locations completed",
-      #   #   value       = paste0(percent_completed, "%"),
-      #   #   theme_color = NULL,
-      #   #   showcase    = div(class = "vb-icon-wrap", icon("percent", class = "fa-xl", style = "color:#063F5C;"))
-      #   # )
-      # )
-      # ),
-      
       card(
         card_header("Dashboard Aims"),
         card_body(
@@ -456,14 +411,14 @@ nav_panel(
       
       radioButtons(
         inputId  = "method",
-        label    = "Choose a method to display:",
+        label    = "Choose a method to display: (TBA)",
         choices  = c("BRUVS", "Dive"),
         inline   = TRUE
       ),
       
       selectizeInput(
-        "region",
-        "Choose a region:",
+        "bioregion",
+        "Choose a bioregion:",
         choices = NULL, multiple = FALSE,
         options = list(placeholder = "Choose a region...")
       ),
@@ -471,11 +426,11 @@ nav_panel(
       hr(),
       
       h6("Years sampled:"),
-      textOutput("years_for_region"),
+      textOutput("years_for_bioregion"),
       br(),
       
       h6("Summary:"),
-      uiOutput("region_summary_text"),
+      uiOutput("bioregion_summary_text"),
       br(),
       
       helpText("")
@@ -489,13 +444,13 @@ nav_panel(
         
         
         card(
-          min_height = 550,
+          min_height = 650,
           full_screen = TRUE,
           card_header("Survey Effort"),
           div(
             class = "map-full-wrapper",
             withSpinner(
-              leafletOutput("region_survey_effort", height = "100%"),
+              leafletOutput("bioregion_survey_effort", height = "100%"),
               color = getOption("spinner.color", default = "#063F5C"),
               type = 6
             )
@@ -506,47 +461,13 @@ nav_panel(
           card(
             card_header(
               div(
-                "Region Impact overview",
+                "Overview",
                 style = "display:inline-block;"
-              ),
-              div(
-                actionLink(
-                  inputId = "open_info_pointers",
-                  label = NULL,
-                  icon = icon("circle-info")
-                ),
-                style = "float:right; margin-top:-2px;"
               )
             ),
             
-            spinnerPlotOutput("overall_impact_gauge", height = 180),  # was: plotOutput(...)
-            h6("Algal bloom impact on:"),
-            spinnerPlotOutput("region_impact_gauges", height = 300),
-            helpText(
-              "* Bluefin leatherjacket impact is reversed, click on the info icon for more information ")# was: plotOutput(...)
+            # TODO add value boxes here
           ),
-          
-          card(
-            card_header(
-              div(
-                "Percentage change compared to pre-bloom levels",
-                style = "display:inline-block;"
-              ),
-              div(
-                actionLink(
-                  inputId = "open_info_table",
-                  label = NULL,
-                  icon = icon("circle-info")
-                ),
-                style = "float:right; margin-top:-2px;"
-              )
-            ),
-            card_body(
-              spinnerUiOutput("region_change_table"#, height = 200
-              )  # was: uiOutput("region_change_table")
-            )
-          )
-          
         )
       ),
       

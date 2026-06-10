@@ -2,7 +2,7 @@
 base_map <- function(max_zoom = 20, current_zoom = 9) {
   leaflet() |>
     addTiles(options = tileOptions(minZoom = 4, max_zoom)) |>
-    setView(lng = mean(nsw_bruv_data$bruv_metadata$longitude_dd), 
+    setView(lng = mean(nsw_bruv_data$bruv_metadata$longitude_dd),
             lat = mean_lat, current_zoom) |>
     addMapPane("polys",  zIndex = 410) |>
     addMapPane("points", zIndex = 420) |>
@@ -39,13 +39,7 @@ base_map <- function(max_zoom = 20, current_zoom = 9) {
       title = "Australian Marine Park Zones",
       position = "bottomright",
       group = "Australian Marine Parks"
-    ) #|>
-  # addLayersControl(
-  #   overlayGroups = c("Australian Marine Parks", "State Marine Parks"#, "Sampling locations"
-  #                     ),
-  #   options = layersControlOptions(collapsed = FALSE),
-  #   position = "topright"
-  # )
+    )
 }
 
 # viridis colours for depth using full domain for consistent legend
@@ -394,345 +388,40 @@ plot_cell <- function(id, width = "120px", height = "120px") {
 # ------------------------------ server ---------------------------------------
 
 server <- function(input, output, session) {
-    
-    stats <- nsw_bruv_data$overview_stats[1, ]
-    
-    output$num_bruvs <- renderText(comma(stats$num_bruvs))
-    output$num_fish <- renderText(comma(stats$num_fish))
-    output$num_lengths <- renderText(comma(stats$num_lengths))
-    
-    output$years_included <- renderText({
-      paste0(stats$min_year, " - ", stats$max_year)
-    })
-    
-    output$depths_surveyed <- renderText({
-      paste0(stats$min_depth, " - ", stats$max_depth, " m")
-    })
-    
-    output$average_depth <- renderText({
-      paste0(round(stats$average_depth), " m")
-    })
   
   
+  # Overview Value Boxes ----
+  stats <- nsw_bruv_data$overview_stats[1, ]
   
+  output$num_bruvs <- renderText(comma(stats$num_bruvs))
+  output$num_fish <- renderText(comma(stats$num_fish))
+  output$num_lengths <- renderText(comma(stats$num_lengths))
   
+  output$years_included <- renderText({
+    paste0(stats$min_year, " - ", stats$max_year)
+  })
   
+  output$depths_surveyed <- renderText({
+    paste0(stats$min_depth, " - ", stats$max_depth, " m")
+  })
   
+  output$average_depth <- renderText({
+    paste0(round(stats$average_depth), " m")
+  })
   
-  # 
-  # regions_joined <- hab_data$regions_shp |>
-  #   left_join(hab_data$regions_summaries, by = "region") %>% 
-  #   left_join(hab_data$overall_impact)
-  # 
-  # # Default selected region (first available)
-  # # selected_region <- reactiveVal({
-  # #   (regions_joined$region[!is.na(regions_joined$region)])[8]
-  # # })
-  # 
-  # selected_region <- reactiveVal((regions_joined$region[!is.na(regions_joined$region)])[8])
-  # 
-  # # whenever the dropdown changes, update selected_region
-  # observeEvent(input$region, {
-  #   req(input$region)
-  #   selected_region(input$region)
-  # }, ignoreInit = TRUE)
-  # 
-  # # Value boxes ----
-  # # Number of BRUV Deployments ----
-  # number_bruv_deployments_pre <- reactive({
-  #   x <- hab_data$hab_number_bruv_deployments %>%
-  #     dplyr::filter(period == "Pre-bloom",
-  #                   region %in% selected_region()) %>%
-  #     dplyr::pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # number_bruv_deployments_post <- reactive({
-  #   x <- hab_data$hab_number_bruv_deployments %>%
-  #     dplyr::filter(period == "Bloom",
-  #                   region %in% selected_region()) %>%
-  #     dplyr::pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "number_bruv_deployments",
-  #   left_reactive  = number_bruv_deployments_pre,
-  #   right_reactive = number_bruv_deployments_post,
-  #   format_fn = scales::label_comma()
-  # )
-  # 
-  # # Number of UVC surveys ----
-  # number_rls_deployments_pre <- safe_pull(function() {
-  #   x <- hab_data$hab_number_rls_deployments %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # number_rls_deployments_post <- safe_pull(function() {
-  #   x <- hab_data$hab_number_rls_deployments %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "number_rls_deployments",
-  #   left_reactive  = number_rls_deployments_pre,
-  #   right_reactive = number_rls_deployments_post,
-  #   format_fn = scales::label_comma()
-  # )
-  # 
-  # # Number of fish counted ----
-  # fish_counted_pre <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_fish %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # fish_counted_post <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_fish %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "fish_counted",
-  #   left_reactive  = fish_counted_pre,
-  #   right_reactive = fish_counted_post,
-  #   format_fn = scales::label_comma()
-  # )
-  # 
-  # # Number of fish species ----
-  # fish_species_pre <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_fish_species %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # fish_species_post <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_fish_species %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # # TODO probs doesn't make sense to split this for demo
-  # twoValueBoxServer(
-  #   id = "fish_species",
-  #   left_reactive  = fish_species_pre,
-  #   right_reactive = fish_species_post,
-  #   format_fn = scales::label_comma()
-  # )
-  # 
-  # # Number of other species ----
-  # non_fish_species_pre <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_nonfish_species %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # non_fish_species_post <- safe_pull(function() {
-  #   x <- hab_data$hab_number_of_nonfish_species %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     pull(number)
-  #   if (length(x) == 0) NA_real_ else x
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "non_fish_species",
-  #   left_reactive  = non_fish_species_pre,
-  #   right_reactive = non_fish_species_post,
-  #   format_fn = scales::label_comma()
-  # )
-  # 
-  # # Years surveyed----
-  # min_year_pre <- reactive({
-  #   hab_data$hab_min_year %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # max_year_pre <- reactive({
-  #   hab_data$hab_max_year %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # years_pre <- reactive({
-  #   paste0(min_year_pre(), " - ", max_year_pre()) 
-  # })
-  # 
-  # min_year_post <- reactive({
-  #   hab_data$hab_min_year %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # max_year_post <- reactive({
-  #   hab_data$hab_max_year %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # years_post <- reactive({
-  #   min_year <- min_year_post()
-  #   max_year <- max_year_post()
-  #   
-  #   # If no data, bail out early with NA (character)
-  #   if (length(min_year) == 0 || length(max_year) == 0 ||
-  #       all(is.na(min_year)) || all(is.na(max_year))) {
-  #     return(NA_character_)
-  #   }
-  #   
-  #   # Coerce once
-  #   min_year_num <- as.numeric(min_year)
-  #   max_year_num <- as.numeric(max_year)
-  #   
-  #   # Safety: if still NA after coercion, treat as no data
-  #   if (is.na(min_year_num) || is.na(max_year_num)) {
-  #     return(NA_character_)
-  #   }
-  #   
-  #   if (min_year_num == max_year_num) {
-  #     as.character(min_year_num)
-  #   } else {
-  #     paste0(min_year_num, " - ", max_year_num)
-  #   }
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "years",
-  #   left_reactive  = years_pre,
-  #   right_reactive = years_post,
-  #   format_fn = as.character
-  # )
-  # 
-  # # Depth ranges ----
-  # min_depth_pre <- reactive({
-  #   hab_data$hab_min_depth %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # max_depth_pre <- reactive({
-  #   hab_data$hab_max_depth %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Pre-bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # depth_pre <- reactive({
-  #   paste0(min_depth_pre(), " - ", max_depth_pre(), " m") 
-  # })
-  # 
-  # min_depth_post <- reactive({
-  #   hab_data$hab_min_depth %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # max_depth_post <- reactive({
-  #   hab_data$hab_max_depth %>%
-  #     dplyr::filter(region %in% selected_region()) %>%
-  #     dplyr::filter(period %in% "Bloom") %>%
-  #     pull(number)
-  # })
-  # 
-  # depth_post <- reactive({
-  #   min_depth <- min_depth_post()
-  #   max_depth <- max_depth_post()
-  #   
-  #   # If no data, bail out early with NA (character)
-  #   if (length(min_depth) == 0 || length(max_depth) == 0 ||
-  #       all(is.na(min_depth)) || all(is.na(max_depth))) {
-  #     return(NA_character_)
-  #   }
-  #   
-  #   # Coerce once
-  #   min_depth_num <- as.numeric(min_depth)
-  #   max_depth_num <- as.numeric(max_depth)
-  #   
-  #   # Safety: if still NA after coercion, treat as no data
-  #   if (is.na(min_depth_num) || is.na(max_depth_num)) {
-  #     return(NA_character_)
-  #   }
-  #   
-  #   if (min_depth_num == max_depth_num) {
-  #     paste0(as.character(min_depth_num), " m")
-  #   } else {
-  #     paste0(min_depth_num, " - ", max_depth_num, " m")
-  #   }
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "depths",
-  #   left_reactive  = depth_pre,
-  #   right_reactive = depth_post,
-  #   format_fn = as.character
-  # )
-  # # 
-  # # depths <- reactive({
-  # #   paste0(scales::label_comma()(min_depth()), " - ", scales::label_comma()(max_depth()), " m") 
-  # # })
-  # # Average Depth  ----
-  # mean_depth_pre <- reactive({
-  #   x <- hab_data$hab_mean_depth %>%
-  #     dplyr::filter(period == "Pre-bloom",
-  #                   region %in% selected_region()) %>%
-  #     pull(number)
-  #   
-  #   if (length(x) == 0) NA_real_ else paste0(scales::label_comma()(x), " m") 
-  # })
-  # 
-  # mean_depth_post <- reactive({
-  #   x <- hab_data$hab_mean_depth %>%
-  #     dplyr::filter(period == "Bloom",
-  #                   region %in% selected_region()) %>%
-  #     pull(number)
-  #   
-  #   if (length(x) == 0) NA_real_ else paste0(scales::label_comma()(x), " m") 
-  # })
-  # 
-  # twoValueBoxServer(
-  #   id = "mean_depth",
-  #   left_reactive  = mean_depth_pre,
-  #   right_reactive = mean_depth_post,
-  #   format_fn = as.character
-  # )
-  # 
+  # Overview Map ----
   output$map <- renderLeaflet({
-
+    
     method_cols <- c("BRUVs" = "#004DA7", "UVC" = "#C600FF")
     
     pts <- (nsw_bruv_data$bruv_metadata) %>%
       dplyr::mutate(method = "BRUVS")
-
+    
     m <- base_map(current_zoom = 6) |>
       # define panes with explicit stacking
       addMapPane("points",    zIndex = 411) |>
-      addMapPane("regions",   zIndex = 412) |>
       addMapPane("highlight", zIndex = 415) %>%
-
+      
       leafgl::addGlPoints(
         data = pts,
         # fillColor = method_cols[pts$method],
@@ -741,334 +430,87 @@ server <- function(input, output, session) {
         group = "Sampling locations",
         pane  = "points"
       ) %>%
-
+      
       addLayersControl(
         overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
         options = layersControlOptions(collapsed = FALSE),
         position = "topright"
-      ) %>%
-
-      hideGroup("Australian Marine Parks") 
-
-
+      ) #%>%
+    
+    # hideGroup("Australian Marine Parks") 
+    
+    
     m
   })
-  # 
-  # 
-  # # # Click handler
-  # # observeEvent(input$map_shape_click, {
-  # #   click <- input$map_shape_click
-  # #   if (!is.null(click$id)) {
-  # #     selected_region(click$id)
-  # #   }
-  # # })
-  # 
-  # # observe({
-  # #   req(selected_region())
-  # #   
-  # #   region_selected <- regions_joined |>
-  # #     dplyr::filter(region == selected_region())
-  # #   
-  # #   leafletProxy("map") |>
-  # #     clearGroup("highlight") |>
-  # #     addPolygons(
-  # #       data = region_selected,
-  # #       color = "white",
-  # #       weight = 6,
-  # #       fillColor = "white",
-  # #       fillOpacity = 0.2,
-  # #       opacity = 0.75,
-  # #       group = "highlight",
-  # #       options = pathOptions(pane = "highlight")
-  # #     )
-  # # })
-  # 
-  # # # Selected region badge
-  # # output$selected_region_badge <- renderUI({
-  # #   req(selected_region())
-  # #   reg <- selected_region()
-  # #   ov <- hab_data$regions_summaries |> 
-  # #     filter(region == reg) |> 
-  # #     pull(overall) |> 
-  # #     as.character()
-  # #   
-  # #   badge_col <- hab_data$pal_vals[[ov %||% "low"]]
-  # #   
-  # #   tags$div(
-  # #     style = sprintf("padding:8px 12px;border-radius:8px;background:%s;color:white;display:inline-block;", badge_col),
-  # #     tags$b(reg),
-  # #     if (!is.na(ov)) tags$span(sprintf(" — %s", tools::toTitleCase(ov)))
-  # #   )
-  # # })
-  # 
-  # # # Selected region title ----
-  # # output$region_title <- renderUI({
-  # #   req(selected_region())
-  # #   reg <- selected_region()
-  # #   
-  # #   tags$div(
-  # #     tags$h3(paste("Algal bloom impacts on nearshore marine biodiversity monitoring progress:", reg))
-  # #   )
-  # # })
-  # 
-  # # ---- Summary text ----
-  # output$region_summary_text <- renderUI({
-  #   req(input$region)
-  #   
-  #   reg <- input$region
-  #   
-  #   txt <- hab_data$regions_summaries |>
-  #     dplyr::filter(region == reg) |>
-  #     dplyr::pull(summary) %>%
-  #     dplyr::glimpse()
-  #   
-  #   HTML(markdown::markdownToHTML(text = txt, fragment.only = TRUE))
-  # })
-  # 
-  # indicator_table <- tibble::tibble(
-  #   Threshold = c(
-  #     "Low = ≥80% of the pre-bloom value",
-  #     "Medium = 50–80% of the pre-bloom value",
-  #     "High = 0–50% of the pre-bloom value"
-  #   ),
-  #   Example = list(
-  #     plot_cell("example_low"),
-  #     plot_cell("example_medium"),
-  #     plot_cell("example_high")
-  #   )
-  # )
-  # 
-  # output$pointer_table <- renderUI({
-  #   tags$table(
-  #     class = "table table-sm hab-table",
-  #     tags$thead(
-  #       tags$tr(
-  #         tags$th("Threshold"),
-  #         tags$th("Example Plot")
-  #       )
-  #     ),
-  #     tags$tbody(
-  #       tags$tr(
-  #         tags$td("Low = ≥80% of the pre-bloom value"),
-  #         tags$td(plotOutput("example_low",  height = 80, width = 120))
-  #       ),
-  #       tags$tr(
-  #         tags$td("Medium = 50–80% of the pre-bloom value"),
-  #         tags$td(plotOutput("example_medium", height = 80, width = 120))
-  #       ),
-  #       tags$tr(
-  #         tags$td("High = 0–50% of the pre-bloom value"),
-  #         tags$td(plotOutput("example_high", height = 80, width = 120))
-  #       )
-  #     )
-  #   )
-  # })
-  # 
-  # output$example_low <- renderPlot(bg = "transparent", {
-  #   half_donut_with_dial(values = c(1,1,1), mode = "absolute", status = "Low") +
-  #     theme(
-  #       panel.background = element_rect(fill = NA, colour = NA),
-  #       plot.background  = element_rect(fill = NA, colour = NA)
-  #     )
-  # })
-  # 
-  # output$example_medium <- renderPlot(bg = "transparent", {
-  #   half_donut_with_dial(values = c(1,1,1), mode = "absolute", status = "Medium") +
-  #     theme(
-  #       panel.background = element_rect(fill = NA, colour = NA),
-  #       plot.background  = element_rect(fill = NA, colour = NA)
-  #     )
-  # })
-  # 
-  # output$example_high <- renderPlot(bg = "transparent", {
-  #   half_donut_with_dial(values = c(1,1,1), mode = "absolute", status = "High") +
-  #     theme(
-  #       panel.background = element_rect(fill = NA, colour = NA),
-  #       plot.background  = element_rect(fill = NA, colour = NA)
-  #     )
-  # })
-  # 
-  # # Indiactor table
-  # output$indicator_table <- renderUI({
-  #   
-  #   # # text for the single big cell
-  #   # threshold_html <- HTML(paste(
-  #   #   "Low = ≥80% of the pre-bloom value",
-  #   #   "Medium = 50–80% of the pre-bloom value",
-  #   #   "High = 0–50% of the pre-bloom value",
-  #   #   sep = "<br>"
-  #   # ))
-  #   
-  #   tags$table(
-  #     class = "table table-sm hab-table",  # uses bootstrap styling
-  #     # header
-  #     tags$thead(
-  #       tags$tr(
-  #         tags$th("Indicator"),
-  #         tags$th("Description")#,
-  #         # tags$th("Impact thresholds")
-  #       )
-  #     ),
-  #     # body
-  #     tags$tbody(
-  #       # first row: also contains the big thresholds cell
-  #       tags$tr(
-  #         tags$td(indicator_tbl$Indicator[1]),
-  #         tags$td(indicator_tbl$Description[1])#,
-  #         # tags$td(
-  #         #   rowspan = nrow(indicator_tbl),    # merge down all rows
-  #         #   style   = "vertical-align:top; white-space:normal;",
-  #         #   threshold_html
-  #         # )
-  #       ),
-  #       # remaining rows: just Indicator + Description
-  #       lapply(2:nrow(indicator_tbl), function(i) {
-  #         tags$tr(
-  #           tags$td(indicator_tbl$Indicator[i]),
-  #           tags$td(indicator_tbl$Description[i])
-  #         )
-  #       })
-  #     )
-  #   )
-  # })
-  # 
-  # observeEvent(input$open_info_table, {
-  #   showModal(
-  #     modalDialog(
-  #       title = "Metric definitions",
-  #       tableOutput("indicator_table"),
-  #       easyClose = TRUE,
-  #       footer = NULL
-  #     )
-  #   )
-  # })
-  # 
-  # observeEvent(input$open_info_pointers, {
-  #   showModal(
-  #     modalDialog(
-  #       title = "Impact assessment",
-  #       tableOutput("pointer_table"),
-  #       easyClose = TRUE,
-  #       footer = NULL
-  #     )
-  #   )
-  # })
-  # 
-  # # Pointer plots----
-  # # Pointer plots: overall + 5 indicators in one figure ------------------------
-  # output$impact_gauges <- renderPlot({
-  #   req(input$region)
-  #   make_impact_gauges(input$region)
-  # })
-  # 
-  # output$overall_impact_gauge <- renderPlot({
-  #   req(input$region)
-  #   make_overall_impact_gauge(input$region)
-  # })
-  # 
-  # output$region_impact_gauges <- renderPlot({
-  #   req(input$region)
-  #   make_impact_gauges(input$region)
-  # })
-  # 
-  # deployments <- reactive({
-  #   deployments <- hab_data$hab_combined_metadata %>%
-  #     dplyr::filter(region %in% input$region) 
-  #   
-  #   # Extract coordinates
-  #   coords <- st_coordinates(deployments)
-  #   
-  #   # Convert coordinates to a data frame or tibble
-  #   coords_df <- as.data.frame(coords)
-  #   
-  #   # Rename columns for clarity (optional)
-  #   colnames(coords_df) <- c("longitude_dd", "latitude_dd")
-  #   
-  #   # Bind the new coordinate columns to the original sf object
-  #   deployments <- bind_cols(deployments, coords_df)
-  # })
-  # 
-  # min_lat <- reactive({min(deployments()$latitude_dd, na.rm = TRUE)})
-  # min_lon <- reactive({min(deployments()$longitude_dd, na.rm = TRUE)})
-  # max_lat <- reactive({max(deployments()$latitude_dd, na.rm = TRUE)})
-  # max_lon <- reactive({max(deployments()$longitude_dd, na.rm = TRUE)})
-  # 
-  # output$region_survey_effort <- renderLeaflet({
-  #   method_cols <- c("BRUVs" = "#004DA7"
-  #                    # , "UVC" = "#C600FF"
-  #   )
-  #   
-  #   pts <- ensure_sf_ll(hab_data$hab_combined_metadata) %>%
-  #     dplyr::filter(region %in% input$region)
-  #   
-  #   shp <- regions_joined %>%
-  #     dplyr::filter(region %in% input$region)
-  #   
-  #   m <- base_map(current_zoom = 7) %>%
-  #     fitBounds(min_lon(), min_lat(), max_lon(), max_lat()) %>%
-  #     
-  #     # polygons for reporting region
-  #     addPolygons(
-  #       data = shp,
-  #       layerId = ~region,
-  #       label   = ~region,
-  #       # color = ~hab_data$pal_factor(regions_joined$overall_impact),#"#444444",
-  #       weight = 5,
-  #       opacity = 1,
-  #       fillOpacity = 0#, #0.7
-  #       # fillColor = ~hab_data$pal_factor(regions_joined$overall_impact),
-  #       # group = "Impact regions",
-  #       # options = pathOptions(pane = "highlight"),
-  #       # highlightOptions = highlightOptions(
-  #       #   color = "white",
-  #       #   weight = 6,
-  #       #   bringToFront = TRUE
-  #       # )
-  #     )
-  #   
-  #   # add points (no curly block after a pipe)
-  #   if (has_leafgl()) {
-  #     m <- leafgl::addGlPoints(
-  #       m, 
-  #       data = pts, 
-  #       fillColor = method_cols[pts$method], 
-  #       weight = 1, 
-  #       popup = pts$popup, 
-  #       group = "Sampling locations", pane = "points"
-  #     )
-  #   } else {
-  #     m <- addCircleMarkers(
-  #       m, data = pts, radius = 6, fillColor = "#f89f00", fillOpacity = 1,
-  #       weight = 1, color = "black", popup = pts$popup,
-  #       group = "Sampling locations", options = pathOptions(pane = "points")
-  #     )
-  #   }
-  #   
-  #   addLegend(m,
-  #             "topright",
-  #             colors = unname(method_cols),
-  #             labels = names(method_cols),
-  #             title = "Survey method",
-  #             opacity = 1,
-  #             group = "Sampling locations",
-  #             layerId = "methodLegend"
-  #   ) %>%
-  #     hideGroup("Australian Marine Parks")
-  # })
-  # 
-  # # ===== EXPLORE INDICATORS & METRICS =====
-  # 
-  # # Populate region choices (reuse your regions_joined)
-  # observe({
-  #   req(regions_joined)
-  #   updateSelectizeInput(
-  #     session, "region",
-  #     choices = sort(unique(regions_joined$region)),
-  #     selected = selected_region() %||% sort(unique(regions_joined$region))[1],
-  #     server = TRUE
-  #   )
-  # })
-  # 
+  
+  
+  # ===== EXPLORE BIOREGION =====
+  
+  # Populate bioregion dropdown ----
+  observe({
+    updateSelectizeInput(
+      session, "bioregion",
+      choices = sort(unique(nsw_bruv_data$bioregion_stats$bioregion)),
+      selected = unique(nsw_bruv_data$bioregion_stats$bioregion)[1],
+      server = TRUE
+    )
+  })
+  
+  # Bioregion map ----
+  bioregion_deployments <- reactive({
+    req(input$bioregion)
+
+    deployments <- nsw_bruv_data$bruv_metadata %>%
+      dplyr::filter(bioregion %in% input$bioregion) %>%
+      dplyr::mutate(method = "BRUVs")
+
+  })
+
+  bio_min_lat <- reactive({ min(bioregion_deployments()$latitude_dd,  na.rm = TRUE) })
+  bio_min_lon <- reactive({ min(bioregion_deployments()$longitude_dd, na.rm = TRUE) })
+  bio_max_lat <- reactive({ max(bioregion_deployments()$latitude_dd,  na.rm = TRUE) })
+  bio_max_lon <- reactive({ max(bioregion_deployments()$longitude_dd, na.rm = TRUE) })
+  
+  output$bioregion_survey_effort <- renderLeaflet({
+    
+    req(input$bioregion)
+    
+    method_cols <- c("BRUVs" = "#004DA7", "UVC" = "#C600FF")
+    
+    pts <- bioregion_deployments()
+    
+    m <- base_map(current_zoom = 6) |>
+      
+      fitBounds(bio_min_lon(), bio_min_lat(), bio_max_lon(), bio_max_lat()) %>%
+      
+      # define panes with explicit stacking
+      addMapPane("points",    zIndex = 411) |>
+      addMapPane("highlight", zIndex = 415) %>%
+      
+      leafgl::addGlPoints(
+        data = pts,
+        # fillColor = method_cols[pts$method],
+        weight = 1,
+        # popup = pts$popup,
+        group = "Sampling locations",
+        pane  = "points"
+      ) %>%
+      
+      addLayersControl(
+        overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
+        options = layersControlOptions(collapsed = FALSE),
+        position = "topright"
+      ) #%>%
+    
+    # hideGroup("Australian Marine Parks") 
+    
+    
+    m
+  })
+  
+  
+  
+  
   # # Build a tabbed card with one tab per metric
   # output$region_tabset <- renderUI({
   #   req(input$region)

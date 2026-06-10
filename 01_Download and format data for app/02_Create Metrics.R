@@ -4,6 +4,7 @@ library(dplyr)
 library(stringr)
 library(tidyr)
 library(here)
+library(sf)
 
 # TODO - should Pseudocaranx georgianus be spp in everything?
 
@@ -15,7 +16,7 @@ bruv_metadata <- readRDS("data/raw/bruv_metadata_nsw.rds") %>%
 # Create bioregion lookup ----
 bioregions_shp <- sf::st_read("data/spatial/Marine_Bioregions.shp") %>% clean_names()
 
-bioregions <- st_transform(bioregions, 4326)
+bioregions_shp <- st_transform(bioregions_shp, 4326)
 
 bioregions <- bruv_metadata %>%
   select(sample_url, bioregion) %>%
