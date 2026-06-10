@@ -8,6 +8,7 @@ library(CheckEM)
 library(dplyr)
 library(httr)
 library(stringr)
+library(sf)
 
 # Set your API token to access GlobalArchive data shared with you ----
 CheckEM::ga_api_set_token()
