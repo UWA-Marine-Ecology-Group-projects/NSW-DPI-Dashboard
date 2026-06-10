@@ -393,6 +393,31 @@ plot_cell <- function(id, width = "120px", height = "120px") {
 # ------------------------------ server ---------------------------------------
 
 server <- function(input, output, session) {
+    
+    stats <- nsw_bruv_data$overview_stats[1, ]
+    
+    output$num_bruvs <- renderText(comma(stats$num_bruvs))
+    output$num_fish <- renderText(comma(stats$num_fish))
+    output$num_lengths <- renderText(comma(stats$num_lengths))
+    
+    output$years_included <- renderText({
+      paste0(stats$min_year, " - ", stats$max_year)
+    })
+    
+    output$depths_surveyed <- renderText({
+      paste0(stats$min_depth, " - ", stats$max_depth, " m")
+    })
+    
+    output$average_depth <- renderText({
+      paste0(round(stats$average_depth), " m")
+    })
+  
+  
+  
+  
+  
+  
+  
   # 
   # regions_joined <- hab_data$regions_shp |>
   #   left_join(hab_data$regions_summaries, by = "region") %>% 

@@ -300,6 +300,81 @@ nav_panel(
           h3("Overview"),
           h5("NSW DPI Dashboard", class = "text-muted")
       ),
+      
+      
+      ui <- page_fillable(
+        tags$head(
+          tags$style(HTML("
+      .overview-value-box {
+        background-color: #0479b5 !important;
+        color: white !important;
+        border-radius: 10px;
+        min-height: 170px;
+      }
+
+      .overview-value-box .value-box-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .overview-value-box .value-box-showcase {
+        color: rgba(255,255,255,0.8);
+      }
+
+      .overview-value-box .value-box-value {
+        font-size: 2.8rem;
+        font-weight: 700;
+      }
+    "))
+        ),
+        
+        layout_columns(
+          col_widths = c(6, 6),
+          
+          value_box(
+            title = "Deployments",
+            value = textOutput("num_bruvs"),
+            showcase = bs_icon("camera-video-fill", size = "4em"),
+            class = "overview-value-box"
+          ),
+          
+          value_box(
+            title = "Fish Counted",
+            value = textOutput("num_fish"),
+            showcase = bs_icon("fish", size = "4em"),
+            class = "overview-value-box"
+          ),
+          
+          value_box(
+            title = "Length Measurements",
+            value = textOutput("num_lengths"),
+            showcase = bs_icon("rulers", size = "4em"),
+            class = "overview-value-box"
+          ),
+          
+          value_box(
+            title = "Years Included",
+            value = textOutput("years_included"),
+            showcase = bs_icon("calendar", size = "4em"),
+            class = "overview-value-box"
+          ),
+          
+          value_box(
+            title = "Depths Surveyed",
+            value = textOutput("depths_surveyed"),
+            showcase = bs_icon("arrows-expand", size = "4em"),
+            class = "overview-value-box"
+          ),
+          
+          value_box(
+            title = "Average Depth",
+            value = textOutput("average_depth"),
+            showcase = bs_icon("activity", size = "4em"),
+            class = "overview-value-box"
+          )
+        )
+      ),
+      
 
       div(
         class = "kpi-row",
