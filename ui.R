@@ -339,21 +339,21 @@ nav_panel(
           ),
           
           value_box(
-            title = "Fish Counted",
+            title = "Fish counted",
             value = textOutput("num_fish"),
             showcase = icon("fish"),
             class = "overview-value-box"
           ),
           
           value_box(
-            title = "Length Measurements",
+            title = "Fish measured",
             value = textOutput("num_lengths"),
             showcase = bs_icon("rulers", size = "4em"),
             class = "overview-value-box"
           ),
           
           value_box(
-            title = "Years Included",
+            title = "Years sampled",
             value = textOutput("years_included"),
             showcase = bs_icon("calendar", size = "4em"),
             class = "overview-value-box"
@@ -466,7 +466,33 @@ nav_panel(
               )
             ),
             
-            # TODO add value boxes here
+            value_box(
+              title = "Deployments",
+              value = textOutput("bioregion_num_bruvs"),
+              showcase = bs_icon("camera-video-fill", size = "4em"),
+              class = "overview-value-box"
+            ),
+            
+            value_box(
+              title = "Fish counted",
+              value = textOutput("bioregion_num_fish"),
+              showcase = icon("fish"),
+              class = "overview-value-box"
+            ),
+            
+            value_box(
+              title = "Fish measured",
+              value = textOutput("bioregion_num_lengths"),
+              showcase = bs_icon("rulers", size = "4em"),
+              class = "overview-value-box"
+            ),
+            
+            value_box(
+              title = "Years sampled",
+              value = textOutput("bioregion_years_included"),
+              showcase = bs_icon("calendar", size = "4em"),
+              class = "overview-value-box"
+            ),
           ),
         )
       ),
@@ -486,16 +512,16 @@ nav_panel(
               min   = 1, 
               max   = 20 
             ),
-            checkboxInput(
-              "region_species_status",
-              "Show status (Fished vs No-take)",
-              FALSE
-            ),
-            checkboxInput(
-              "region_species_facet",
-              "Facet by status",
-              FALSE
-            )
+            # checkboxInput(
+            #   "region_species_status",
+            #   "Show status (Fished vs No-take)",
+            #   FALSE
+            # ),
+            # checkboxInput(
+            #   "region_species_facet",
+            #   "Facet by status",
+            #   FALSE
+            # )
           ),
           
           layout_columns(
@@ -505,16 +531,7 @@ nav_panel(
               class = "plot-full-wrapper",
               # style = "height:500px;",
               withSpinner(
-                plotOutput("region_common_pre", height = "100%"),
-                color = getOption("spinner.color", default = "#063F5C"),
-                type = 6
-              )
-            ),
-            div(
-              class = "plot-full-wrapper",
-              # style = "height:500px;",
-              withSpinner(
-                plotOutput("region_common_post", height = "100%"),
+                plotOutput("bioregion_top", height = "100%"),
                 color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
@@ -528,144 +545,144 @@ nav_panel(
   )
 ),
 
-nav_panel(
-  "Marine Park Summary",
-  layout_sidebar(
-    sidebar = sidebar(
-      width = "350px",
-      selectizeInput(
-        "location",
-        "Choose a location",
-        choices = NULL, multiple = FALSE,
-        options = list(placeholder = "Choose a location...")
-      ),
-      
-      h6("Years sampled:"),
-      textOutput("years_for_location"),
-      br(),
-      
-      h6("Summary:"),
-      uiOutput("location_summary_text"),
-      br(),
-      
-      helpText("")
-    ),
-    
-    div(
-      class = "container-fluid",
-      
-      layout_columns(
-        col_widths = c(7, 5),
-        
-        card(
-          min_height = 600,
-          full_screen = TRUE,
-          card_header("Survey Effort"),
-          div(
-            class = "map-full-wrapper",
-            withSpinner(
-              leafletOutput("location_survey_effort", height = "100%"),
-              color = getOption("spinner.color", default = "#063F5C"),
-              type = 6
-            )
-          )
-        ),
-        
-        div(
-          card(
-            card_header(
-              div(
-                "Location Impact overview",
-                style = "display:inline-block;"
-              ),
-              div(
-                actionLink(
-                  inputId = "open_info_pointers_location",
-                  label = NULL,
-                  icon = icon("circle-info")
-                ),
-                style = "float:right; margin-top:-2px;"
-              )
-            ),
-            spinnerPlotOutput("location_impact_gauges", height = 350)
-          ),
-          
-          card(
-            card_header(
-              div(
-                "Percentage change compared to pre-bloom levels",
-                style = "display:inline-block;"
-              ),
-              div(
-                actionLink(
-                  inputId = "open_info_table_location",
-                  label = NULL,
-                  icon = icon("circle-info")
-                ),
-                style = "float:right; margin-top:-2px;"
-              )
-            ),
-            card_body(
-              spinnerUiOutput("location_change_table")
-            )
-          )
-        )
-      ),
-      
-      card(
-        min_height = 500,
-        card_header("Common species"),
-        full_screen = TRUE,
-        
-        layout_sidebar(
-          sidebar = div(
-            h6(strong("Plot inputs:")),
-            numericInput(
-              "location_number_species",
-              "Choose number of species to plot",
-              value = 10,
-              min   = 1,
-              max   = 20
-            ),
-            checkboxInput(
-              "location_species_status",
-              "Show status (Fished vs No-take)",
-              FALSE
-            ),
-            checkboxInput(
-              "location_species_facet",
-              "Facet by status",
-              FALSE
-            )
-          ),
-          
-          layout_columns(
-            col_widths = c(6, 6),
-            
-            div(
-              class = "plot-full-wrapper",
-              withSpinner(
-                plotOutput("location_common_pre", height = "100%"),
-                color = getOption("spinner.color", default = "#063F5C"),
-                type = 6
-              )
-            ),
-            div(
-              class = "plot-full-wrapper",
-              withSpinner(
-                plotOutput("location_common_post", height = "100%"),
-                color = getOption("spinner.color", default = "#063F5C"),
-                type = 6
-              )
-            )
-          )
-        )
-      ),
-      
-      uiOutput("location_tabset")
-    )
-  )
-),
+# nav_panel(
+#   "Marine Park Summary",
+#   layout_sidebar(
+#     sidebar = sidebar(
+#       width = "350px",
+#       selectizeInput(
+#         "location",
+#         "Choose a location",
+#         choices = NULL, multiple = FALSE,
+#         options = list(placeholder = "Choose a location...")
+#       ),
+#       
+#       h6("Years sampled:"),
+#       textOutput("years_for_location"),
+#       br(),
+#       
+#       h6("Summary:"),
+#       uiOutput("location_summary_text"),
+#       br(),
+#       
+#       helpText("")
+#     ),
+#     
+#     div(
+#       class = "container-fluid",
+#       
+#       layout_columns(
+#         col_widths = c(7, 5),
+#         
+#         card(
+#           min_height = 600,
+#           full_screen = TRUE,
+#           card_header("Survey Effort"),
+#           div(
+#             class = "map-full-wrapper",
+#             withSpinner(
+#               leafletOutput("location_survey_effort", height = "100%"),
+#               color = getOption("spinner.color", default = "#063F5C"),
+#               type = 6
+#             )
+#           )
+#         ),
+#         
+#         div(
+#           card(
+#             card_header(
+#               div(
+#                 "Location Impact overview",
+#                 style = "display:inline-block;"
+#               ),
+#               div(
+#                 actionLink(
+#                   inputId = "open_info_pointers_location",
+#                   label = NULL,
+#                   icon = icon("circle-info")
+#                 ),
+#                 style = "float:right; margin-top:-2px;"
+#               )
+#             ),
+#             spinnerPlotOutput("location_impact_gauges", height = 350)
+#           ),
+#           
+#           card(
+#             card_header(
+#               div(
+#                 "Percentage change compared to pre-bloom levels",
+#                 style = "display:inline-block;"
+#               ),
+#               div(
+#                 actionLink(
+#                   inputId = "open_info_table_location",
+#                   label = NULL,
+#                   icon = icon("circle-info")
+#                 ),
+#                 style = "float:right; margin-top:-2px;"
+#               )
+#             ),
+#             card_body(
+#               spinnerUiOutput("location_change_table")
+#             )
+#           )
+#         )
+#       ),
+#       
+#       card(
+#         min_height = 500,
+#         card_header("Common species"),
+#         full_screen = TRUE,
+#         
+#         layout_sidebar(
+#           sidebar = div(
+#             h6(strong("Plot inputs:")),
+#             numericInput(
+#               "location_number_species",
+#               "Choose number of species to plot",
+#               value = 10,
+#               min   = 1,
+#               max   = 20
+#             ),
+#             checkboxInput(
+#               "location_species_status",
+#               "Show status (Fished vs No-take)",
+#               FALSE
+#             ),
+#             checkboxInput(
+#               "location_species_facet",
+#               "Facet by status",
+#               FALSE
+#             )
+#           ),
+#           
+#           layout_columns(
+#             col_widths = c(6, 6),
+#             
+#             div(
+#               class = "plot-full-wrapper",
+#               withSpinner(
+#                 plotOutput("location_common_pre", height = "100%"),
+#                 color = getOption("spinner.color", default = "#063F5C"),
+#                 type = 6
+#               )
+#             ),
+#             div(
+#               class = "plot-full-wrapper",
+#               withSpinner(
+#                 plotOutput("location_common_post", height = "100%"),
+#                 color = getOption("spinner.color", default = "#063F5C"),
+#                 type = 6
+#               )
+#             )
+#           )
+#         )
+#       ),
+#       
+#       uiOutput("location_tabset")
+#     )
+#   )
+# ),
 
 nav_spacer(),
 
