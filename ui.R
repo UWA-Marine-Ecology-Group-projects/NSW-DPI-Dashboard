@@ -284,7 +284,28 @@ tags$head(
   font-weight: 600;
   margin-bottom: 0.25rem;
 }
-  "))
+  ")),
+  
+  # tags$head(
+  #   tags$style(HTML("
+  #   .overview-value-box .value-box-showcase,
+  #   .overview-value-box .value-box-showcase *,
+  #   .overview-value-box .value-box-showcase svg,
+  #   .overview-value-box .value-box-showcase svg *,
+  #   .overview-value-box .value-box-showcase .fa,
+  #   .overview-value-box .value-box-showcase i,
+  #   .bioregion-value-box .value-box-showcase,
+  #   .bioregion-value-box .value-box-showcase *,
+  #   .bioregion-value-box .value-box-showcase svg,
+  #   .bioregion-value-box .value-box-showcase svg *,
+  #   .bioregion-value-box .value-box-showcase .fa,
+  #   .bioregion-value-box .value-box-showcase i {
+  #     color: #FFFFFF !important;
+  #     fill: #FFFFFF !important;
+  #     stroke: #FFFFFF !important;
+  #   }
+  # "))
+  # )
 ),
 
 

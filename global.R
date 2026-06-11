@@ -48,11 +48,11 @@ commonwealth.pal <- colorFactor(c("#f6c1d9", # Sanctuary
 
 # These are used to build the metric UI plots -----
 metric_defs <- c(
-  cti           = "Community temperature index",
+  cti           = "Community temperature index (CTI)",
   species_richness      = "Species richness",
   total_abundance = "Total abundance",
   alt   = "Abundance of large teleosts",
-  blt   = "Biomass of large teleosts"
+  blt   = "Biomass of large teleosts (BLT)"
 )
 
 metric_y_lab <- list(
