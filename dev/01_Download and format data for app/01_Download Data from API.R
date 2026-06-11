@@ -22,8 +22,6 @@ CheckEM::ga_api_all_data(synthesis_id = "19",
                          dir = "data/raw/",
                          include_zeros = FALSE)
 
-# TODO - I think a spatial join would be best to do this so that I make sure I get all campaigns
-
 bioregions <- sf::st_read("data/spatial/Marine_Bioregions.shp") %>% clean_names()
 plot(bioregions)
 

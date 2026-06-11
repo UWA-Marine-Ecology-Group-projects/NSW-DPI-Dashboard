@@ -42,7 +42,7 @@ bioregions_shp <- sf::st_read("data/spatial/Marine_Bioregions.shp") %>% clean_na
 bioregions_shp <- st_transform(bioregions_shp, 4326)
 
 bioregions <- bruv_metadata %>%
-  select(sample_url, bioregion) %>%
+  select(sample_url, bioregion, status) %>%
   sf::st_drop_geometry()
 
 bruv_count <- readRDS("data/raw/bruv_count_nsw.rds")
@@ -144,26 +144,62 @@ complete_bruv_count <- bruv_count %>%
 
 top_50_most_abundant_species_overall <- complete_bruv_count %>%
   dplyr::group_by(family, genus, species) %>% 
-  dplyr::summarise(average_abundance = mean(count), .groups = "drop") %>%
+  dplyr::summarise(average_abundance = mean(count),
+                   se = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count)))) %>%
   ungroup() %>%
   arrange(-average_abundance) %>%
   slice_head(n = 50) %>%
   dplyr::mutate(group = "overall") %>%
+  dplyr::mutate(by_status = FALSE) %>%
   glimpse
 
 top_50_most_abundant_species_bioregion <- complete_bruv_count %>%
   dplyr::group_by(bioregion, family, genus, species) %>% 
   dplyr::summarise(
-    average_abundance = mean(count, na.rm = TRUE),
-    .groups = "drop") %>%
+    average_abundance = mean(count),
+    se = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count)))) %>%
   dplyr::group_by(bioregion) %>%
   dplyr::arrange(dplyr::desc(average_abundance), .by_group = TRUE) %>%
   dplyr::slice_head(n = 50) %>%
   dplyr::ungroup() %>%
   dplyr::mutate(group = "bioregion") %>%
+  dplyr::mutate(by_status = FALSE) %>%
+  glimpse
+
+# Make a list of unique species to join once calculated by status
+top_50_species_overall <- top_50_most_abundant_species_overall %>%
+  distinct(family, genus, species)
+
+top_50_most_abundant_species_overall_status <- complete_bruv_count %>%
+  dplyr::group_by(status, family, genus, species) %>% 
+  dplyr::summarise(average_abundance = mean(count),
+                   se = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count)))) %>%
+  ungroup() %>%
+  semi_join(top_50_species_overall) %>%
+  dplyr::mutate(group = "overall") %>%
+  dplyr::mutate(by_status = TRUE) %>%
+  glimpse
+
+top_50_species_bioregions <- top_50_most_abundant_species_bioregion %>%
+  distinct(bioregion, family, genus, species)
+
+top_50_most_abundant_species_bioregion_status <- complete_bruv_count %>%
+  dplyr::group_by(bioregion, status, family, genus, species) %>% 
+  dplyr::summarise(
+    average_abundance = mean(count),
+    .groups = "drop",
+    se = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count)))) %>%
+  ungroup() %>%
+  semi_join(top_50_species_bioregions) %>%
+  dplyr::mutate(group = "bioregion") %>%
+  dplyr::mutate(by_status = TRUE) %>%
   glimpse
 
 test <- top_50_most_abundant_species_bioregion %>%
+  group_by(bioregion) %>%
+  count()
+
+test <- top_50_most_abundant_species_bioregion_status %>%
   group_by(bioregion) %>%
   count()
 
@@ -175,10 +211,22 @@ common_names <- CheckEM::australia_life_history %>%
   select(family, genus, species, australian_common_name)
 
 top_species <- bind_rows(top_50_most_abundant_species_overall,
-                         top_50_most_abundant_species_bioregion) %>%
+                         top_50_most_abundant_species_bioregion,
+                         top_50_most_abundant_species_overall_status,
+                         top_50_most_abundant_species_bioregion_status,
+                         ) %>%
   left_join(common_names) %>%
-  mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")")) %>%
-  glimpse()
+  mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))  %>%
+  tidyr::extract(
+    display_name,
+    into   = c("sci", "common"),
+    regex  = "^(.*?)\\s*\\((.*?)\\)$",
+    remove = FALSE
+  ) |>
+  dplyr::mutate(
+    label = paste0("*", sci, "*<br>(", common, ")")
+  ) %>%
+  glimpse
 
 # Quick stats for overview page ----
 overview_stats <- tibble::tibble(

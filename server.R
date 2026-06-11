@@ -84,12 +84,12 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion") {
       # default: 2 plots
       {
         tagList(
-        metric_plotOutput(prefix, data_id, "year"),
-        layout_columns(
-          col_widths = c(6, 6),
-          metric_plotOutput(prefix, data_id, "main"),
-          metric_plotOutput(prefix, data_id, "status")
-        ))
+          metric_plotOutput(prefix, data_id, "year"),
+          layout_columns(
+            col_widths = c(6, 6),
+            metric_plotOutput(prefix, data_id, "main"),
+            metric_plotOutput(prefix, data_id, "status")
+          ))
       }
     )
   )
@@ -247,7 +247,8 @@ server <- function(input, output, session) {
   # TODO make this function be able to work on bioregion or marine_park
   make_top10_plot <- function(bioregion_name,
                               title_lab = "Common species",
-                              number_species
+                              number_species,
+                              include_status = FALSE
   ) {
     
     # ---- Data prep ----
@@ -256,66 +257,84 @@ server <- function(input, output, session) {
       dplyr::filter(bioregion == bioregion_name)
     
     # Top N species within the focal period
-    top_species <- df_raw |>
+    top_species <- df_raw %>% 
+      dplyr::filter(by_status == FALSE) |>
       dplyr::slice_max(order_by = average_abundance,
                        n = number_species,
                        with_ties = FALSE) |>
       dplyr::pull(display_name)
     
-    # TODO do this before the server code
+    if(include_status %in% TRUE){
+      plot_df <- df_raw %>% dplyr::filter(by_status == TRUE) 
+    } else {
+      plot_df <- df_raw %>% dplyr::filter(by_status == FALSE)
+    }
     
     # Extract sci/common and build markdown label
-    plot_df <- df_raw %>%
-      dplyr::filter(display_name %in% top_species) %>%
-      tidyr::extract(
-        display_name,
-        into   = c("sci", "common"),
-        regex  = "^(.*?)\\s*\\((.*?)\\)$",
-        remove = FALSE
-      ) |>
-      dplyr::mutate(
-        label = paste0("*", sci, "*<br>(", common, ")")
-      )
+    plot_df <- plot_df %>%
+      dplyr::filter(display_name %in% top_species)
     
-    # Species order: smallest at bottom, biggest at top for focal period
-    species_order <- plot_df |>
+    # Species order: smallest at bottom, biggest at top
+    # I want to order by overall abundance
+    overall_order_species <- df_raw %>%
+      dplyr::filter(by_status == FALSE) |>
+      dplyr::filter(display_name %in% top_species)
+    
+    species_order <- overall_order_species |>
       dplyr::arrange(average_abundance) |>
       dplyr::pull(label) |>
       unique()
     
     plot_df$label <- factor(plot_df$label, levels = species_order)
     
-    p <- ggplot(
-      plot_df,
-      aes(
-        x    = average_abundance,
-        y    = label
-      )
-    ) +
-      geom_col() + # position = dodge
-      # geom_errorbarh( 
-      #   aes(
-      #     xmin = average_abundance - se,
-      #     xmax = average_abundance + se
-      #   ),
-      #   position = dodge,
-      #   height   = 0.3
-      # ) +
+    base_plot <- ggplot(plot_df, aes(x = average_abundance, y = label, fill = status)) +
       labs(
         x     = "Average abundance per BRUV",
         y     = NULL,
         title = title_lab,
         fill  = NULL
-      ) 
-    
-    # Shared scales / theme
-    p +
+      ) +
       scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
       theme_classic() +
       theme(
         legend.position = "bottom",
         axis.text.y     = ggtext::element_markdown(size = 12)
       )
+    
+    if(include_status %in% FALSE){
+      
+      final_plot <- base_plot +
+        geom_col(fill = "#063F5C") + 
+        geom_errorbarh(
+          aes(
+            xmin = average_abundance - se,
+            xmax = average_abundance + se
+          ),
+          height   = 0.3
+        )  +
+        guides(fill = "none")
+    } else {
+      
+      dodge <- position_dodge(width = 0.75)
+      
+      final_plot <- base_plot +
+        geom_col(position = dodge) + 
+        geom_errorbarh(
+          aes(
+            xmin = average_abundance - se,
+            xmax = average_abundance + se
+          ),
+          position = dodge,
+          height   = 0.3
+        )  +
+        scale_fill_manual(
+          values = c(
+            "Fished"  = "#A9173A",
+            "No-Take" = "#67C7BB"
+          ))
+    }
+    
+    final_plot
   }
   
   # Bioregion top species plot ----
@@ -327,6 +346,19 @@ server <- function(input, output, session) {
       title_lab      = "Most common species",
       bioregion_name = input$bioregion,
       number_species = input$bioregion_number_species
+    )
+  })
+  
+  output$bioregion_top_status <- renderPlot({
+    
+    req(input$bioregion)
+    
+    make_top10_plot(
+      title_lab      = "Most common species",
+      bioregion_name = input$bioregion,
+      number_species = input$bioregion_number_species,
+      include_status = TRUE
+      
     )
   })
   
@@ -503,9 +535,9 @@ server <- function(input, output, session) {
   }
   
   make_metric_boxplot_year <- function(metric_id,
-                                  x_col = "start_month",
-                                  plot_title = NULL,
-                                  plot_subtitle = NULL) {
+                                       x_col = "start_month",
+                                       plot_title = NULL,
+                                       plot_subtitle = NULL) {
     
     df <- bioregion_metric_data(metric_id)
     

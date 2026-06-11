@@ -512,16 +512,6 @@ nav_panel(
               min   = 1, 
               max   = 20 
             ),
-            # checkboxInput(
-            #   "region_species_status",
-            #   "Show status (Fished vs No-take)",
-            #   FALSE
-            # ),
-            # checkboxInput(
-            #   "region_species_facet",
-            #   "Facet by status",
-            #   FALSE
-            # )
           ),
           
           layout_columns(
@@ -532,6 +522,16 @@ nav_panel(
               # style = "height:500px;",
               withSpinner(
                 plotOutput("bioregion_top", height = "100%"),
+                color = getOption("spinner.color", default = "#063F5C"),
+                type = 6
+              )
+            ),
+            
+            div(
+              class = "plot-full-wrapper",
+              # style = "height:500px;",
+              withSpinner(
+                plotOutput("bioregion_top_status", height = "100%"),
                 color = getOption("spinner.color", default = "#063F5C"),
                 type = 6
               )
