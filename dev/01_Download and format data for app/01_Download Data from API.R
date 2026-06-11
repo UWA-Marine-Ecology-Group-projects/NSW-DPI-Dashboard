@@ -14,7 +14,7 @@ library(sf)
 CheckEM::ga_api_set_token()
 
 # Load the saved token
-token <- readRDS("secrets/api_token.RDS")
+token <- readRDS("secrets/api_token.rds")
 
 # Load the metadata, count and length ----
 CheckEM::ga_api_all_data(synthesis_id = "19",

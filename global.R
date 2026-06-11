@@ -46,7 +46,7 @@ commonwealth.pal <- colorFactor(c("#f6c1d9", # Sanctuary
 ), commonwealth.mp$zone)
 
 
-# ---- GLOBAL ADDITIONS ----
+# These are used to build the metric UI plots -----
 metric_defs <- c(
   species_richness      = "Species richness",
   total_abundance = "Total abundance",
@@ -60,3 +60,9 @@ metric_y_lab <- list(
   cti           = "Community temperature index (°C)",
   blt   = "Biomass (kg)"
 )
+
+# Deploy app ----
+# renv::status()
+# renv::snapshot(prompt = FALSE)
+# 
+# rsconnect::appDependencies()

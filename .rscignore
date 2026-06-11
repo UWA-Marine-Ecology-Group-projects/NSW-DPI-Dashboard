@@ -1,0 +1,17 @@
+.renv
+.renv/
+.github
+.github/
+.Rhistory
+.Rprofile
+data
+data/
+state
+state/
+dev
+dev/
+secrets
+secrets/
+scripts
+scripts/
+renv.lock

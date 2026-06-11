@@ -83,11 +83,13 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion") {
       # },
       # default: 2 plots
       {
+        tagList(
+        metric_plotOutput(prefix, data_id, "year"),
         layout_columns(
           col_widths = c(6, 6),
           metric_plotOutput(prefix, data_id, "main"),
           metric_plotOutput(prefix, data_id, "status")
-        )
+        ))
       }
     )
   )
@@ -500,6 +502,83 @@ server <- function(input, output, session) {
     )
   }
   
+  make_metric_boxplot_year <- function(metric_id,
+                                  x_col = "start_month",
+                                  plot_title = NULL,
+                                  plot_subtitle = NULL) {
+    
+    df <- bioregion_metric_data(metric_id)
+    
+    validate(
+      need(nrow(df) > 0, paste("No data available for", metric_id)),
+      need(x_col %in% names(df), paste("Column", x_col, "not found in metrics data"))
+    )
+    
+    mean_se <- df %>%
+      dplyr::group_by(.data[[x_col]]) %>%
+      dplyr::summarise(
+        n    = sum(!is.na(value)),
+        mean = mean(value, na.rm = TRUE),
+        se   = dplyr::if_else(
+          n > 1,
+          stats::sd(value, na.rm = TRUE) / sqrt(n),
+          0
+        ),
+        .groups = "drop"
+      )
+    
+    ggplot(df, aes(x = .data[[x_col]], y = value)) +
+      
+      geom_boxplot(
+        width = 0.6,
+        outlier.shape = NA,
+        alpha = 0.85,
+        colour = "black"
+      ) +
+      
+      geom_jitter(
+        width = 0.15,
+        height = 0,
+        alpha = 0.35,
+        size = 1.2
+      ) +
+      
+      geom_pointrange(
+        data = mean_se,
+        aes(
+          x    = .data[[x_col]],
+          y    = mean,
+          ymin = mean - se,
+          ymax = mean + se
+        ),
+        inherit.aes = FALSE,
+        colour = "black",
+        linewidth = 0.6
+      ) +
+      
+      labs(
+        x        = NULL,
+        y        = get_metric_label(metric_id),
+        title    = plot_title,
+        subtitle = plot_subtitle
+      ) +
+      
+      theme_minimal(base_size = 16) +
+      theme(
+        legend.position  = "none",
+        panel.grid.minor = element_blank()
+      )
+  }
+  
+  make_metric_year_plot <- function(metric_id) {
+    make_metric_boxplot_year(
+      metric_id     = metric_id,
+      x_col         = "start_month",
+      plot_title    = metric_defs[[metric_id]],
+      plot_subtitle = paste(input$bioregion, collapse = ", ")
+    )
+  }
+  
   make_metric_status_plot <- function(metric_id) {
     df <- bioregion_metric_data(metric_id)
     
@@ -536,6 +615,11 @@ server <- function(input, output, session) {
       output[[metric_plot_id("bioregion", metric_id, "main")]] <- renderPlot({
         req(input$bioregion)
         make_metric_main_plot(metric_id)
+      })
+      
+      output[[metric_plot_id("bioregion", metric_id, "year")]] <- renderPlot({
+        req(input$bioregion)
+        make_metric_year_plot(metric_id)
       })
       
       output[[metric_plot_id("bioregion", metric_id, "status")]] <- renderPlot({

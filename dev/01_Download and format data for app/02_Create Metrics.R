@@ -11,7 +11,30 @@ library(sf)
 # Read in data ----
 bruv_metadata <- readRDS("data/raw/bruv_metadata_nsw.rds") %>%
   dplyr::select(campaignid, sample, everything()) %>%
-  dplyr::mutate(year = str_sub(date_time, 1, 4))
+  dplyr::mutate(year = str_sub(date_time, 1, 4)) %>%
+  dplyr::mutate(date = as.Date(date_time)) 
+
+campaign_lookup <- bruv_metadata %>%
+  dplyr::select(campaignid, sample, date_time, date) %>%
+  sf::st_drop_geometry() %>%
+  dplyr::arrange(campaignid, date) %>%
+  dplyr::group_by(campaignid) %>%
+  dplyr::mutate(
+    days_since_previous = as.numeric(date - dplyr::lag(date)),
+    new_event = is.na(days_since_previous) | days_since_previous > 14,
+    event_number = cumsum(new_event)
+  ) %>%
+  dplyr::group_by(campaignid, event_number) %>%
+  dplyr::mutate(
+    start_date = min(date),
+    new_campaignid = paste0(campaignid, "_", format(start_date, "%Y%m%d"))
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(campaignid, date, event_number, start_date) %>%
+  dplyr::mutate(start_month = str_sub(start_date, 1, 7)) %>%
+  dplyr::distinct()
+
+unique(bruv_metadata$campaignid)
 
 # Create bioregion lookup ----
 bioregions_shp <- sf::st_read("data/spatial/Marine_Bioregions.shp") %>% clean_names()
@@ -95,7 +118,10 @@ distinct_species <- samples_missing_cti %>% distinct(family, genus, species)
 metrics <- bind_rows(total_abundance_samples, 
                      species_richness_samples, 
                      cti_samples) %>%
-  left_join(bioregions)
+  left_join(bioregions) %>%
+  left_join(count_samples %>% 
+              select(sample_url, sample, date_time, date, status)) %>%
+  left_join(campaign_lookup)
 
 
 ## Indicator Species and most abundant species -----
