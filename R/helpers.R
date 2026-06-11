@@ -27,6 +27,19 @@ ggplot_theme <-
     plot.title = ggplot2::element_text(color = "black", size = 12, face = "bold.italic")
   )
 
+# No data plot ----
+no_data_plot <- function(title = NULL) {
+  ggplot() +
+    annotate("text", x = 0.5, y = 0.5,
+             label = "Data not available",
+             size = 5, fontface = "italic", colour = "black") +
+    theme_void() +
+    labs(title = title) +
+    theme(
+      plot.title = element_text(hjust = 0.5, face = "bold")
+    )
+}
+
 # Legend for leaflet ----
 add_legend <- function(map, colors, labels, sizes, opacity = 1, group, title, layerId) { #map, 
   colorAdditions <- glue::glue(
@@ -50,75 +63,43 @@ add_legend <- function(map, colors, labels, sizes, opacity = 1, group, title, la
   )
 }
 
-filter_by_location <- function(df, loc) {
-  if (is.null(loc) || !"location" %in% names(df)) return(NULL)
-  dplyr::filter(df, .data$location == loc)
-}
-
-base_map <- function(max_zoom = 11, current_zoom = 6) {
-  leaflet() |>
-    addTiles(options = tileOptions(minZoom = 4, max_zoom)) |>
-    setView(lng = 135.3, lat = -35.1, current_zoom) |>
-    addMapPane("polys",  zIndex = 410) |>
-    addMapPane("points", zIndex = 420) |>
-    # Use regular polygons for static layers:
-    addPolygons(
-      data = state.mp,                # or state.mp_s if you simplified
-      color = "black", weight = 1,
-      fillColor = ~state.pal(zone), fillOpacity = 0.8,
-      group = "State Marine Parks",
-      popup = ~name,
-      options = pathOptions(pane = "polys")
-    ) |>
-    addPolygons(
-      data = commonwealth.mp,         # or common.mp_s if simplified
-      color = "black", weight = 1,
-      fillColor = ~commonwealth.pal(zone), fillOpacity = 0.8,
-      group = "Australian Marine Parks",
-      popup = ~ZoneName,
-      options = pathOptions(pane = "polys")
-    ) %>%
-    
-    # Legends
-    addLegend(
-      pal = state.pal,
-      values = state.mp$zone,
-      opacity = 1,
-      title = "State Zones",
-      position = "bottomleft",
-      group = "State Marine Parks"
-    ) |>
-    addLegend(
-      pal = commonwealth.pal,
-      values = commonwealth.mp$zone,
-      opacity = 1,
-      title = "Australian Marine Park Zones",
-      position = "bottomleft",
-      group = "Australian Marine Parks"
-    ) |>
-    addLayersControl(
-      overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
-      options = layersControlOptions(collapsed = FALSE),
-      position = "topright"
-    ) 
-}
-
 ensure_sf_ll <- function(x, lon = "longitude_dd", lat = "latitude_dd") {
   if (inherits(x, "sf")) return(x)
   stopifnot(lon %in% names(x), lat %in% names(x))
   sf::st_as_sf(x, coords = c(lon, lat), crs = 4326)
 }
 
-add_bubble_legend <- function(map, max_val, title, layerId = "bubbleLegendSpecies", methodcol = "#f89f00") {
-  leaflet::removeControl(map, layerId) %>%
-    add_legend(
-      colors = c("white", methodcol, methodcol),
-      labels = c(0, round(max_val / 2), max_val),
-      sizes  = c(5, 20, 40),
-      title  = title,
-      group  = "Sampling locations",
-      layerId = layerId
-    )
+has_leafgl <- function() requireNamespace("leafgl", quietly = TRUE)
+
+# Loaders for plots ----
+spinnerPlotOutput <- function(outputId, ...) {
+  withSpinner(
+    plotOutput(outputId, ...),
+    color = getOption("spinner.color", default = "#0D576E"),
+    type = 6
+  )
 }
 
-has_leafgl <- function() requireNamespace("leafgl", quietly = TRUE)
+spinnerLeafletOutput <- function(outputId, ...) {
+  withSpinner(
+    leafletOutput(outputId, ...),
+    color = getOption("spinner.color", default = "#0D576E"),
+    type = 6
+  )
+}
+
+spinnerTableOutput <- function(outputId, ...) {
+  withSpinner(
+    tableOutput(outputId, ...),
+    color = getOption("spinner.color", default = "#0D576E"),
+    type = 6
+  )
+}
+
+spinnerUiOutput <- function(outputId, ...) {
+  withSpinner(
+    uiOutput(outputId, ...),
+    color = getOption("spinner.color", default = "#0D576E"),
+    type = 6
+  )
+}

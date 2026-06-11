@@ -506,7 +506,7 @@ nav_panel(
           sidebar = div(
             h6(strong("Plot inputs:")),
             numericInput( 
-              "region_number_species", 
+              "bioregion_number_species", 
               "Choose number of species to plot", 
               value = 10, 
               min   = 1, 
@@ -540,7 +540,7 @@ nav_panel(
         )
       ),
       # br(),
-      uiOutput("region_tabset")   # tabset stays, now below the table
+      uiOutput("bioregion_tabset")   # tabset stays, now below the table
     )
   )
 ),
