@@ -46,8 +46,16 @@ base_map <- function(max_zoom = 20, current_zoom = 9) {
 
 # ---- output id helpers -------------------------------------------------------
 # TODO move this into the helpers code
+metric_output_id <- function(prefix, metric_id, which) {
+  paste0(prefix, "_", which, "_", metric_id)
+}
+
 metric_plot_id <- function(prefix, metric_id, which) {
-  paste0(prefix, "_plot_", metric_id, "_", which)
+  metric_output_id(prefix, metric_id, which)
+}
+
+metric_map_id <- function(prefix, metric_id, which = "map") {
+  metric_output_id(prefix, metric_id, which)
 }
 
 metric_plotOutput <- function(prefix, metric_id, which, height = 600, spinner_type = 6) {
@@ -58,6 +66,28 @@ metric_plotOutput <- function(prefix, metric_id, which, height = 600, spinner_ty
   )
 }
 
+metric_leafletOutput <- function(prefix, metric_id, which = "map", height = 500, spinner_type = 6) {
+  div(
+    class = "map-full-wrapper",
+    withSpinner(
+      leafletOutput(metric_map_id(prefix, metric_id, which), height = height),
+      color = getOption("spinner.color", default = "#0D576E"),
+      type = spinner_type
+    )
+  )
+}
+# metric_plot_id <- function(prefix, metric_id, which) {
+#   paste0(prefix, "_plot_", metric_id, "_", which)
+# }
+# 
+# metric_plotOutput <- function(prefix, metric_id, which, height = 600, spinner_type = 6) {
+#   withSpinner(
+#     plotOutput(metric_plot_id(prefix, metric_id, which), height = height),
+#     color = getOption("spinner.color", default = "#0D576E"),
+#     type = spinner_type
+#   )
+# }
+
 metric_plot_type_input_id <- function(prefix, metric_id) {
   paste0(prefix, "_", metric_id, "_plot_type")
 }
@@ -65,22 +95,54 @@ metric_plot_type_input_id <- function(prefix, metric_id) {
 metric_tab_body_ui <- function(metric_id, prefix = "bioregion") {
   
   data_id <- metric_id
-  plot_type_id <- metric_plot_type_input_id(prefix, data_id)
   
   tagList(
-    # Your existing layout(s)
-    switch(
-      metric_id,
-      {
-        tagList(
-          metric_plotOutput(prefix, data_id, "year"),
-          # layout_columns(
-          #   col_widths = c(6, 6),
-          #   metric_plotOutput(prefix, data_id, "main"),
-          #   metric_plotOutput(prefix, data_id, "status")
-          # )
-          )
-      }
+    
+    # Existing temporal plot
+    
+    layout_columns(
+      col_widths = c(6, 6),
+    
+    card(
+      full_screen = TRUE,
+      card_header("Temporal"),
+    metric_plotOutput(
+      prefix = prefix,
+      metric_id = data_id,
+      which = "year",
+      height = 600
+    )),
+    
+    card(
+      full_screen = TRUE,
+      card_header("Spatial"),
+      metric_leafletOutput(
+        prefix = prefix,
+        metric_id = data_id,
+        which = "map",
+        height = 500
+      )
+    ),
+    
+    # br(),
+    
+    # # New two-column row
+    # layout_columns(
+    #   col_widths = c(6, 6),
+    #   
+    # 
+    #   ),
+      
+      # card(
+        # full_screen = TRUE,
+        # card_header("Diagnostic plot"),
+        metric_plotOutput(
+          prefix = prefix,
+          metric_id = data_id,
+          which = "blank",
+          height = 500
+        # )
+      )
     )
   )
 }
@@ -344,7 +406,7 @@ server <- function(input, output, session) {
     req(input$bioregion)
     
     make_top10_plot(
-      title_lab      = "Most common species",
+      title_lab      = "", #"Most common species",
       bioregion_name = input$bioregion,
       number_species = input$bioregion_number_species,
       include_status = TRUE
@@ -555,7 +617,7 @@ server <- function(input, output, session) {
         values = c(
           "Fished"  = "#A9173A",
           "No-Take" = "#67C7BB"
-        ))
+        ))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   }
   
   make_metric_year_plot <- function(metric_id) {
@@ -614,6 +676,167 @@ server <- function(input, output, session) {
         req(input$bioregion)
         make_metric_status_plot(metric_id)
       })
+    })
+  }
+  
+  
+  bioregion_metric_map_data <- function(metric_id) {
+    req(input$bioregion)
+    
+    df <- nsw_bruv_data$metrics %>%
+      dplyr::filter(bioregion %in% input$bioregion) %>%
+      dplyr::filter(metric == metric_id)
+    
+    # If latitude/longitude are already in nsw_bruv_data$metrics, this will do nothing.
+    # If they are not, join them from bruv_metadata.
+    if (!all(c("latitude_dd", "longitude_dd") %in% names(df))) {
+      
+      join_cols <- intersect(
+        c("deployment_id", "sample_id", "sample", "sample_name", "deployment"),
+        names(df)
+      )
+      
+      metadata_join_cols <- intersect(join_cols, names(nsw_bruv_data$bruv_metadata))
+      
+      validate(
+        need(
+          length(metadata_join_cols) > 0,
+          "No matching sample/deployment ID found to join metric data to BRUV metadata."
+        )
+      )
+      
+      join_col <- metadata_join_cols[1]
+      
+      df <- df %>%
+        dplyr::left_join(
+          nsw_bruv_data$bruv_metadata %>%
+            dplyr::select(
+              dplyr::all_of(join_col),
+              latitude_dd,
+              longitude_dd
+            ),
+          by = join_col
+        )
+    }
+    
+    df %>%
+      dplyr::filter(
+        !is.na(latitude_dd),
+        !is.na(longitude_dd),
+        !is.na(value)
+      )
+  }
+  
+  make_metric_leaflet_map <- function(metric_id) {
+    
+    pts <- bioregion_metric_map_data(metric_id)
+    
+    validate(
+      need(nrow(pts) > 0, paste("No mappable data available for", metric_id))
+    )
+    
+    pal <- leaflet::colorNumeric(
+      palette = "viridis",
+      domain = pts$value,
+      na.color = "#BDBDBD"
+    )
+    
+    # Rescale point radius safely
+    if (length(unique(stats::na.omit(pts$value))) <= 1) {
+      pts$radius <- 8
+    } else {
+      pts$radius <- scales::rescale(
+        pts$value,
+        to = c(4, 14),
+        from = range(pts$value, na.rm = TRUE)
+      )
+    }
+    
+    pts <- pts %>%
+      dplyr::mutate(
+        popup_text = paste0(
+          "<strong>", get_metric_label(metric_id), "</strong><br>",
+          "Value: ", round(value, 2), "<br>",
+          "Status: ", status, "<br>"#,
+          # "Latitude: ", round(latitude_dd, 5), "<br>",
+          # "Longitude: ", round(longitude_dd, 5)
+        )
+      )
+    
+    legend_title <- stringr::str_wrap(get_metric_label(metric_id), width = 15)
+    legend_title <- gsub("\n", "<br>", legend_title)
+    
+    base_map(current_zoom = 6) %>%
+      fitBounds(
+        lng1 = min(pts$longitude_dd, na.rm = TRUE),
+        lat1 = min(pts$latitude_dd,  na.rm = TRUE),
+        lng2 = max(pts$longitude_dd, na.rm = TRUE),
+        lat2 = max(pts$latitude_dd,  na.rm = TRUE)
+      ) %>%
+      addMapPane("metric_points", zIndex = 430) %>%
+      addCircleMarkers(
+        data = pts,
+        lng = ~longitude_dd,
+        lat = ~latitude_dd,
+        radius = ~radius,
+        fillColor = ~pal(value),
+        fillOpacity = 0.8,
+        color = "#FFFFFF",
+        weight = 1,
+        opacity = 1,
+        popup = ~popup_text,
+        group = "Metric values",
+        options = pathOptions(pane = "metric_points")
+      ) %>%
+      addLegend(
+        pal = pal,
+        values = pts$value,
+        title = htmltools::HTML(legend_title),
+        position = "topleft",
+        opacity = 1
+      ) %>%
+      addLayersControl(
+        overlayGroups = c(
+          "Australian Marine Parks",
+          "State Marine Parks",
+          "Metric values"
+        ),
+        options = layersControlOptions(collapsed = FALSE),
+        position = "topright"
+      )
+  }
+  
+  make_metric_blank_plot <- function(metric_id) {
+    graphics::plot.new()
+    graphics::text(
+      x = 0.5,
+      y = 0.5,
+      labels = "Plot coming soon",
+      cex = 1.5,
+      col = "#063F5C"
+    )
+  }
+  
+  # Register outputs for every metric in metric_defs.
+  # This matches the IDs created by metric_tab_body_ui().
+  for (id in names(metric_defs)) {
+    local({
+      metric_id <- id
+      
+      # output[[metric_plot_id("bioregion", metric_id, "year")]] <- renderPlot({
+      #   req(input$bioregion)
+      #   make_metric_year_plot(metric_id)
+      # })
+      # 
+      output[[metric_map_id("bioregion", metric_id, "map")]] <- renderLeaflet({
+        req(input$bioregion)
+        make_metric_leaflet_map(metric_id)
+      })
+      # 
+      # output[[metric_plot_id("bioregion", metric_id, "blank")]] <- renderPlot({
+      #   req(input$bioregion)
+      #   make_metric_blank_plot(metric_id)
+      # })
     })
   }
   

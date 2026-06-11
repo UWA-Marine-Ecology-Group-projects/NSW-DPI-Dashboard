@@ -30,11 +30,24 @@ campaign_lookup <- bruv_metadata %>%
     new_campaignid = paste0(campaignid, "_", format(start_date, "%Y%m%d"))
   ) %>%
   dplyr::ungroup() %>%
-  dplyr::select(campaignid, date, event_number, start_date) %>%
+  dplyr::select(campaignid, date, event_number, start_date, new_campaignid) %>%
   dplyr::mutate(start_month = str_sub(start_date, 1, 7)) %>%
   dplyr::distinct()
 
 unique(bruv_metadata$campaignid)
+unique(campaign_lookup$new_campaignid) # 88 unique
+
+# THIS is too many plots for each campaign
+bruv_metadata %>% 
+  left_join(campaign_lookup) %>%
+  distinct(bioregion, new_campaignid) %>%
+  group_by(bioregion) %>%
+  count()
+
+bruv_metadata %>% 
+  distinct(bioregion, year) %>%
+  group_by(bioregion) %>%
+  count()
 
 # Create bioregion lookup ----
 bioregions_shp <- sf::st_read("data/spatial/Marine_Bioregions.shp") %>% clean_names()
