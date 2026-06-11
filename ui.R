@@ -301,12 +301,11 @@ nav_panel(
           # h5("NSW DPI Dashboard", class = "text-muted")
       ),
       
-      
       ui <- page_fillable(
         tags$head(
           tags$style(HTML("
       .overview-value-box {
-        background-color: #0479b5 !important;
+        background-color: #063F5C !important;
         color: white !important;
         border-radius: 10px;
         min-height: 170px;
@@ -318,12 +317,33 @@ nav_panel(
       }
 
 .overview-value-box .value-box-showcase {
-  color: rgba(255,255,255,0.7) !important;
+  color: #F6FBFE !important;
 }
 
       .overview-value-box .value-box-value {
         font-size: 2.8rem;
         font-weight: 400;
+      }
+      
+           .bioregion-value-box .value-box-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+      }
+
+.bioregion-value-box .value-box-showcase {
+  color: #F6FBFE !important;
+}
+
+      .bioregion-value-box .value-box-value {
+        font-size: 2rem;
+        font-weight: 400;
+      }
+      
+            .bioregion-value-box {
+        background-color: #063F5C !important;
+        color: white !important;
+        border-radius: 10px;
+        min-height: 170px;
       }
     "))
         ),
@@ -334,7 +354,7 @@ nav_panel(
           value_box(
             title = "Deployments",
             value = textOutput("num_bruvs"),
-            showcase = bs_icon("camera-video-fill", size = "4em"),
+            showcase = bs_icon("camera-video-fill", size = "1.5em"),
             class = "overview-value-box"
           ),
           
@@ -348,14 +368,14 @@ nav_panel(
           value_box(
             title = "Fish measured",
             value = textOutput("num_lengths"),
-            showcase = bs_icon("rulers", size = "4em"),
+            showcase = bs_icon("rulers", size = "1.5em"),
             class = "overview-value-box"
           ),
           
           value_box(
             title = "Years sampled",
             value = textOutput("years_included"),
-            showcase = bs_icon("calendar", size = "4em"),
+            showcase = bs_icon("calendar", size = "1.5em"),
             class = "overview-value-box"
           ),
           
@@ -444,7 +464,8 @@ nav_panel(
         
         
         card(
-          min_height = 650,
+          min_height = 600,
+          max_height = 800,
           full_screen = TRUE,
           card_header("Survey Effort"),
           div(
@@ -458,43 +479,52 @@ nav_panel(
         ),
         
         div(
-          card(
-            card_header(
-              div(
-                "Overview",
-                style = "display:inline-block;"
-              )
-            ),
+          # card(
+          #   card_header(
+          #     div(
+          #       "Overview",
+          #       style = "display:inline-block;"
+          #     )
+          #   ),
+          
+          h3("Bioregion overview"),
+            
+            layout_columns(
+              col_widths = c(6, 6),
             
             value_box(
               title = "Deployments",
               value = textOutput("bioregion_num_bruvs"),
-              showcase = bs_icon("camera-video-fill", size = "4em"),
-              class = "overview-value-box"
+              showcase = bs_icon("camera-video-fill", size = "1.5em"),
+              class = "bioregion-value-box",
+              height = "200px",
             ),
             
             value_box(
               title = "Fish counted",
               value = textOutput("bioregion_num_fish"),
               showcase = icon("fish"),
-              class = "overview-value-box"
+              class = "bioregion-value-box",
+              height = "200px",
             ),
             
             value_box(
               title = "Fish measured",
               value = textOutput("bioregion_num_lengths"),
-              showcase = bs_icon("rulers", size = "4em"),
-              class = "overview-value-box"
+              showcase = bs_icon("rulers", size = "1.25em"),
+              class = "bioregion-value-box",
+              height = "200px",
             ),
             
             value_box(
               title = "Years sampled",
               value = textOutput("bioregion_years_included"),
-              showcase = bs_icon("calendar", size = "4em"),
-              class = "overview-value-box"
+              showcase = bs_icon("calendar", size = "1.25em"),
+              class = "bioregion-value-box",
+              height = "200px",
             ),
-          ),
-        )
+          ))
+        # )
       ),
       
       card(

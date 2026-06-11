@@ -71,25 +71,15 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion") {
     # Your existing layout(s)
     switch(
       metric_id,
-      
-      # total_abundance = {
-      #   tagList(
-      #     layout_columns(
-      #       col_widths = c(6, 6),
-      #       metric_plotOutput(prefix, data_id, "main"),
-      #       metric_plotOutput(prefix, data_id, "status")
-      #     )
-      #   )
-      # },
-      # default: 2 plots
       {
         tagList(
           metric_plotOutput(prefix, data_id, "year"),
-          layout_columns(
-            col_widths = c(6, 6),
-            metric_plotOutput(prefix, data_id, "main"),
-            metric_plotOutput(prefix, data_id, "status")
-          ))
+          # layout_columns(
+          #   col_widths = c(6, 6),
+          #   metric_plotOutput(prefix, data_id, "main"),
+          #   metric_plotOutput(prefix, data_id, "status")
+          # )
+          )
       }
     )
   )
@@ -343,7 +333,7 @@ server <- function(input, output, session) {
     req(input$bioregion)
     
     make_top10_plot(
-      title_lab      = "Most common species",
+      title_lab      = "", #"Most common species",
       bioregion_name = input$bioregion,
       number_species = input$bioregion_number_species
     )
@@ -375,67 +365,7 @@ server <- function(input, output, session) {
       })
     )
   })
-  
-  # # SPECIES RICHNESS: main plot --------------------
-  # output$bioregion_plot_species_richness_main <- renderPlot({
-  #   req(input$bioregion)
-  #   
-  #   df <- nsw_bruv_data$metrics %>%
-  #     dplyr::filter(bioregion == input$bioregion) %>%
-  #     dplyr::filter(metric %in% "species_richness")
-  #   
-  #   mean_se <- df %>%
-  #     dplyr::group_by(bioregion) %>%
-  #     dplyr::summarise(mean = mean(value), 
-  #                      se = sd(value, na.rm = TRUE) / sqrt(sum(!is.na(value)))) %>%
-  #     dplyr::ungroup() %>%
-  #     glimpse
-  #   
-  #   ggplot(df, aes(x = bioregion, y = value)) +
-  #     
-  #     geom_boxplot(
-  #       width = 0.6,
-  #       outlier.shape = NA,
-  #       alpha = 0.85,
-  #       colour = "black"
-  #     ) +
-  #     
-  #     # raw points
-  #     geom_jitter(
-  #       # aes(colour = period),
-  #       width = 0.15,
-  #       height = 0,      # <— prevents any vertical jitter
-  #       alpha = 0.35,
-  #       size = 1.2
-  #     ) +
-  #     
-  #     # # mean ± SE
-  #     geom_pointrange(
-  #       data = mean_se,
-  #       aes(
-  #         x    = bioregion,
-  #         y    = mean,
-  #         ymin = mean - se,
-  #         ymax = mean + se
-  #       ),
-  #       inherit.aes = FALSE,
-  #       colour = "black",
-  #       linewidth = 0.6
-  #     ) +
-  #     
-  #     labs(
-  #       x = NULL,
-  #       y = metric_y_lab[["species_richness"]],
-  #       subtitle = input$bioregion
-  #     ) +
-  #     theme_minimal(base_size = 16) +
-  #     theme(
-  #       legend.position  = "none",
-  #       panel.grid.minor = element_blank()
-  #     )
-  # }) 
-  
-  
+
   # Generic metric plots ----
   
   get_metric_label <- function(metric_id) {
@@ -456,84 +386,84 @@ server <- function(input, output, session) {
       dplyr::filter(bioregion %in% input$bioregion) %>%
       dplyr::filter(metric == metric_id)
   }
-  
-  make_metric_boxplot <- function(metric_id,
-                                  x_col = "bioregion",
-                                  plot_title = NULL,
-                                  plot_subtitle = NULL) {
-    
-    df <- bioregion_metric_data(metric_id)
-    
-    validate(
-      need(nrow(df) > 0, paste("No data available for", metric_id)),
-      need(x_col %in% names(df), paste("Column", x_col, "not found in metrics data"))
-    )
-    
-    mean_se <- df %>%
-      dplyr::group_by(.data[[x_col]]) %>%
-      dplyr::summarise(
-        n    = sum(!is.na(value)),
-        mean = mean(value, na.rm = TRUE),
-        se   = dplyr::if_else(
-          n > 1,
-          stats::sd(value, na.rm = TRUE) / sqrt(n),
-          0
-        ),
-        .groups = "drop"
-      )
-    
-    ggplot(df, aes(x = .data[[x_col]], y = value)) +
-      
-      geom_boxplot(
-        width = 0.6,
-        outlier.shape = NA,
-        alpha = 0.85,
-        colour = "black"
-      ) +
-      
-      geom_jitter(
-        width = 0.15,
-        height = 0,
-        alpha = 0.35,
-        size = 1.2
-      ) +
-      
-      geom_pointrange(
-        data = mean_se,
-        aes(
-          x    = .data[[x_col]],
-          y    = mean,
-          ymin = mean - se,
-          ymax = mean + se
-        ),
-        inherit.aes = FALSE,
-        colour = "black",
-        linewidth = 0.6
-      ) +
-      
-      labs(
-        x        = NULL,
-        y        = get_metric_label(metric_id),
-        title    = plot_title,
-        subtitle = plot_subtitle
-      ) +
-      
-      theme_minimal(base_size = 16) +
-      theme(
-        legend.position  = "none",
-        panel.grid.minor = element_blank()
-      )
-  }
-  
-  make_metric_main_plot <- function(metric_id) {
-    make_metric_boxplot(
-      metric_id     = metric_id,
-      x_col         = "bioregion",
-      plot_title    = metric_defs[[metric_id]],
-      plot_subtitle = paste(input$bioregion, collapse = ", ")
-    )
-  }
-  
+  # 
+  # make_metric_boxplot <- function(metric_id,
+  #                                 x_col = "bioregion",
+  #                                 plot_title = NULL,
+  #                                 plot_subtitle = NULL) {
+  #   
+  #   df <- bioregion_metric_data(metric_id)
+  #   
+  #   validate(
+  #     need(nrow(df) > 0, paste("No data available for", metric_id)),
+  #     need(x_col %in% names(df), paste("Column", x_col, "not found in metrics data"))
+  #   )
+  #   
+  #   mean_se <- df %>%
+  #     dplyr::group_by(.data[[x_col]]) %>%
+  #     dplyr::summarise(
+  #       n    = sum(!is.na(value)),
+  #       mean = mean(value, na.rm = TRUE),
+  #       se   = dplyr::if_else(
+  #         n > 1,
+  #         stats::sd(value, na.rm = TRUE) / sqrt(n),
+  #         0
+  #       ),
+  #       .groups = "drop"
+  #     )
+  #   
+  #   ggplot(df, aes(x = .data[[x_col]], y = value, fill = status)) +
+  #     
+  #     # geom_boxplot(
+  #     #   width = 0.6,
+  #     #   outlier.shape = NA,
+  #     #   alpha = 0.85,
+  #     #   colour = "black"
+  #     # ) +
+  #     
+  #     # geom_jitter(
+  #     #   width = 0.15,
+  #     #   height = 0,
+  #     #   alpha = 0.35,
+  #     #   size = 1.2
+  #     # ) +
+  #     
+  #     geom_pointrange(
+  #       data = mean_se,
+  #       aes(
+  #         x    = .data[[x_col]],
+  #         y    = mean,
+  #         ymin = mean - se,
+  #         ymax = mean + se
+  #       ),
+  #       inherit.aes = FALSE,
+  #       colour = "black",
+  #       linewidth = 0.6
+  #     ) +
+  #     
+  #     labs(
+  #       x        = NULL,
+  #       y        = get_metric_label(metric_id),
+  #       title    = plot_title,
+  #       subtitle = plot_subtitle
+  #     ) +
+  #     
+  #     theme_minimal(base_size = 16) +
+  #     theme(
+  #       legend.position  = "none",
+  #       panel.grid.minor = element_blank()
+  #     )
+  # }
+  # 
+  # make_metric_main_plot <- function(metric_id) {
+  #   make_metric_boxplot(
+  #     metric_id     = metric_id,
+  #     x_col         = "bioregion",
+  #     plot_title    = metric_defs[[metric_id]],
+  #     plot_subtitle = paste(input$bioregion, collapse = ", ")
+  #   )
+  # }
+  # 
   make_metric_boxplot_year <- function(metric_id,
                                        x_col = "start_month",
                                        plot_title = NULL,
@@ -546,8 +476,14 @@ server <- function(input, output, session) {
       need(x_col %in% names(df), paste("Column", x_col, "not found in metrics data"))
     )
     
+    # Make start_month a real date
+    df <- df %>%
+      dplyr::mutate(
+        start_month = as.Date(paste0(start_month, "-01"))
+      )
+    
     mean_se <- df %>%
-      dplyr::group_by(.data[[x_col]]) %>%
+      dplyr::group_by(.data[[x_col]], status) %>%
       dplyr::summarise(
         n    = sum(!is.na(value)),
         mean = mean(value, na.rm = TRUE),
@@ -557,23 +493,24 @@ server <- function(input, output, session) {
           0
         ),
         .groups = "drop"
-      )
+      ) %>%
+      glimpse
     
-    ggplot(df, aes(x = .data[[x_col]], y = value)) +
+    ggplot(df, aes(x = .data[[x_col]], y = value, fill = status, colour = status)) +
       
-      geom_boxplot(
-        width = 0.6,
-        outlier.shape = NA,
-        alpha = 0.85,
-        colour = "black"
-      ) +
-      
-      geom_jitter(
-        width = 0.15,
-        height = 0,
-        alpha = 0.35,
-        size = 1.2
-      ) +
+      # geom_boxplot(
+      #   width = 0.6,
+      #   outlier.shape = NA,
+      #   alpha = 0.85,
+      #   colour = "black"
+      # ) +
+      # 
+      # geom_jitter(
+      #   width = 0.15,
+      #   height = 0,
+      #   alpha = 0.35,
+      #   size = 1.2
+      # ) +
       
       geom_pointrange(
         data = mean_se,
@@ -581,25 +518,44 @@ server <- function(input, output, session) {
           x    = .data[[x_col]],
           y    = mean,
           ymin = mean - se,
-          ymax = mean + se
+          ymax = mean + se,
+          fill = status,
+          colour = status
         ),
+        position = position_dodge(width = 0.5),
         inherit.aes = FALSE,
-        colour = "black",
+        # colour = "black",
         linewidth = 0.6
       ) +
       
       labs(
         x        = NULL,
-        y        = get_metric_label(metric_id),
-        title    = plot_title,
-        subtitle = plot_subtitle
+        y        = get_metric_label(metric_id)#,
+        # title    = plot_title,
+        # subtitle = plot_subtitle
+      ) +
+      
+      # scale_y_continuous(
+      #   limits = c(0, NA),
+      #   expand = expansion(mult = c(0, 0.05))
+      # ) +
+      
+      scale_x_date(
+        date_labels = "%Y-%m",
+        date_breaks = "1 year",
+        expand = expansion(mult = c(0.02, 0.02))
       ) +
       
       theme_minimal(base_size = 16) +
       theme(
-        legend.position  = "none",
+        # legend.position  = "none",
         panel.grid.minor = element_blank()
-      )
+      ) +
+      scale_colour_manual(
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        ))
   }
   
   make_metric_year_plot <- function(metric_id) {
