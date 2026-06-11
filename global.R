@@ -9,31 +9,6 @@ library(sf)
 library(shinycssloaders)
 library(scales)
 
-# library(fontawesome)
-
-# library(colourvalues)
-# library(shinyWidgets)
-
-# library(stringr)
-# library(data.table)
-
-# library(lubridate)
-# library(tidytext)
-# # library(leafsync)
-# library(leaflet.extras2)
-# library(rmapshaper)
-
-# library(htmltools)
-# library(ggforce)
-# library(patchwork)
-# library(googlesheets4)
-# library(rmarkdown)
-# library(ggtext)
-# library(DT)
-
-
-
-
 source("R/helpers.R")          # defines filter_by_park(), ensure_sf_ll(), base_map(), etc.
 source("R/mod_park_summary.R") # defines mod_park_summary_ui/server (contains session$onFlushed INSIDE)
 source("R/theme.R")
