@@ -35,6 +35,9 @@ campaign_lookup <- bruv_metadata %>%
   dplyr::distinct()
 
 unique(bruv_metadata$campaignid)
+
+write.csv(bruv_metadata %>% distinct(campaignid) %>% arrange(campaignid), "nsw_campaigns.csv")
+
 unique(campaign_lookup$new_campaignid) # 88 unique
 
 # THIS is too many plots for each campaign

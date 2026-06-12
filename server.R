@@ -131,7 +131,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
     if (metric_id == "total_abundance") {
       card(
         full_screen = TRUE,
-        card_header("Compare common species by year"),
+        card_header("Compare most abundant species by year"),
         
         layout_columns(
           col_widths = c(6, 6),
@@ -141,6 +141,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               inputId = metric_year_input_id(prefix, data_id, "left"),
               label   = "Choose a year",
               choices = year_choices,
+              width = "100%",
               selected = if (!is.null(year_choices) && length(year_choices) > 0) min(year_choices, na.rm = TRUE) else NULL
             ),
             metric_plotOutput(
@@ -156,6 +157,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               inputId = metric_year_input_id(prefix, data_id, "right"),
               label   = "Choose a year",
               choices = year_choices,
+              width = "100%",
               selected = if (!is.null(year_choices) && length(year_choices) > 0) max(year_choices, na.rm = TRUE) else NULL
             ),
             metric_plotOutput(

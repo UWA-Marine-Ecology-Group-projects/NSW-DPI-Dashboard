@@ -550,7 +550,7 @@ nav_panel(
       
       card(
         min_height = 500,
-        card_header("Common species"),
+        card_header("Most abundant species"),
         full_screen = TRUE,
         
         layout_sidebar(
