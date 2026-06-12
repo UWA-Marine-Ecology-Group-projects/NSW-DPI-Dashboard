@@ -216,6 +216,34 @@ test <- top_50_most_abundant_species_bioregion_status %>%
   group_by(bioregion) %>%
   count()
 
+top_50_most_abundant_species_bioregion_status_year <- complete_bruv_count %>%
+  left_join(count_samples) %>%
+  dplyr::group_by(bioregion, status, year, family, genus, species) %>% 
+  dplyr::summarise(
+    average_abundance = mean(count),
+    .groups = "drop",
+    se = sd(count, na.rm = TRUE) / sqrt(sum(!is.na(count)))) %>%
+  ungroup() %>%
+  semi_join(top_50_species_bioregions) %>%
+  dplyr::mutate(group = "bioregion") %>%
+  dplyr::mutate(by_status = TRUE) %>%
+  glimpse %>%
+  left_join(common_names) %>%
+  mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))  %>%
+  tidyr::extract(
+    display_name,
+    into   = c("sci", "common"),
+    regex  = "^(.*?)\\s*\\((.*?)\\)$",
+    remove = FALSE
+  ) |>
+  dplyr::mutate(
+    label = paste0("*", sci, "*<br>(", common, ")")
+  ) %>%
+  glimpse
+
+names(top_50_most_abundant_species_bioregion_status_year)
+
+
 # TODO add top_50_most_abundant_species_park
 # TODO by year??
 
@@ -227,7 +255,7 @@ top_species <- bind_rows(top_50_most_abundant_species_overall,
                          top_50_most_abundant_species_bioregion,
                          top_50_most_abundant_species_overall_status,
                          top_50_most_abundant_species_bioregion_status,
-                         ) %>%
+) %>%
   left_join(common_names) %>%
   mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))  %>%
   tidyr::extract(
@@ -297,6 +325,7 @@ nsw_bruv_data <- structure(
     overview_stats = overview_stats,
     bioregion_stats = bioregion_stats,
     top_species = top_species,
+    top_50_most_abundant_species_bioregion_status_year = top_50_most_abundant_species_bioregion_status_year,
     metrics = metrics,
     
     # TODO add shapefiles here

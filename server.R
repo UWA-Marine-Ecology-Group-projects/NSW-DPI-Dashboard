@@ -92,58 +92,82 @@ metric_plot_type_input_id <- function(prefix, metric_id) {
   paste0(prefix, "_", metric_id, "_plot_type")
 }
 
-metric_tab_body_ui <- function(metric_id, prefix = "bioregion") {
+metric_year_input_id <- function(prefix, metric_id, which) {
+  paste0(prefix, "_", which, "_year_", metric_id)
+}
+
+metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = NULL) {
   
   data_id <- metric_id
   
   tagList(
     
-    # Existing temporal plot
-    
     layout_columns(
       col_widths = c(6, 6),
-    
-    card(
-      full_screen = TRUE,
-      card_header("Temporal"),
-    metric_plotOutput(
-      prefix = prefix,
-      metric_id = data_id,
-      which = "year",
-      height = 600
-    )),
-    
-    card(
-      full_screen = TRUE,
-      card_header("Spatial"),
-      metric_leafletOutput(
-        prefix = prefix,
-        metric_id = data_id,
-        which = "map",
-        height = 500
-      )
-    ),
-    
-    # br(),
-    
-    # # New two-column row
-    # layout_columns(
-    #   col_widths = c(6, 6),
-    #   
-    # 
-    #   ),
       
-      # card(
-        # full_screen = TRUE,
-        # card_header("Diagnostic plot"),
+      card(
+        full_screen = TRUE,
+        card_header("Temporal"),
         metric_plotOutput(
           prefix = prefix,
           metric_id = data_id,
-          which = "blank",
+          which = "year",
+          height = 600
+        )
+      ),
+      
+      card(
+        full_screen = TRUE,
+        card_header("Spatial"),
+        metric_leafletOutput(
+          prefix = prefix,
+          metric_id = data_id,
+          which = "map",
           height = 500
-        # )
+        )
       )
-    )
+    ),
+    
+    if (metric_id == "total_abundance") {
+      card(
+        full_screen = TRUE,
+        card_header("Compare common species by year"),
+        
+        layout_columns(
+          col_widths = c(6, 6),
+          
+          div(
+            selectInput(
+              inputId = metric_year_input_id(prefix, data_id, "left"),
+              label   = "Choose a year",
+              choices = year_choices,
+              selected = if (!is.null(year_choices) && length(year_choices) > 0) min(year_choices, na.rm = TRUE) else NULL
+            ),
+            metric_plotOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "left_year_status",
+              height = 500
+            )
+          ),
+          
+          div(
+            selectInput(
+              inputId = metric_year_input_id(prefix, data_id, "right"),
+              label   = "Choose a year",
+              choices = year_choices,
+              selected = if (!is.null(year_choices) && length(year_choices) > 0) max(year_choices, na.rm = TRUE) else NULL
+            ),
+            metric_plotOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "right_year_status",
+              height = 500
+            )
+          )
+        )
+      )
+    }
   )
 }
 
@@ -415,14 +439,36 @@ server <- function(input, output, session) {
   })
   
   # Build a tabbed card with one tab per metric
+  # output$bioregion_tabset <- renderUI({
+  #   req(input$bioregion)
+  #   
+  #   bslib::navset_card_tab(
+  #     !!!lapply(names(metric_defs), function(id) {
+  #       bslib::nav(
+  #         title = metric_defs[[id]],
+  #         metric_tab_body_ui(id, prefix = "bioregion")
+  #       )
+  #     })
+  #   )
+  # })
   output$bioregion_tabset <- renderUI({
     req(input$bioregion)
+    
+    year_choices <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+      dplyr::filter(bioregion == input$bioregion) %>%
+      dplyr::pull(year) %>%
+      unique() %>%
+      sort()
     
     bslib::navset_card_tab(
       !!!lapply(names(metric_defs), function(id) {
         bslib::nav(
           title = metric_defs[[id]],
-          metric_tab_body_ui(id, prefix = "bioregion")
+          metric_tab_body_ui(
+            metric_id = id,
+            prefix = "bioregion",
+            year_choices = year_choices
+          )
         )
       })
     )
@@ -839,6 +885,136 @@ server <- function(input, output, session) {
       # })
     })
   }
+  
+  
+  # TOTAL ABUNDANCE DIAGNOSTIC PLOTS ----
+  make_top_abundance_bioregion_status_year_plot <- function(
+    bioregion_name,
+    selected_year,
+    number_species = 10,
+    title_lab = NULL
+  ) {
+    
+    req(bioregion_name, selected_year)
+    
+    df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+      dplyr::filter(bioregion == bioregion_name) %>%
+      dplyr::filter(as.character(year) == as.character(selected_year))
+    
+    validate(
+      need(nrow(df_raw) > 0, paste("No species data available for", bioregion_name, "in", selected_year))
+    )
+    
+    top_species <- df_raw %>%
+      dplyr::group_by(display_name) %>%
+      dplyr::summarise(
+        overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      dplyr::slice_max(
+        order_by = overall_average_abundance,
+        n = number_species,
+        with_ties = FALSE
+      ) %>%
+      dplyr::pull(display_name)
+    
+    plot_df <- df_raw %>%
+      dplyr::filter(display_name %in% top_species)
+    
+    species_order <- plot_df %>%
+      dplyr::group_by(label) %>%
+      dplyr::summarise(
+        overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
+      dplyr::arrange(overall_average_abundance) %>%
+      dplyr::pull(label)
+    
+    plot_df <- plot_df %>%
+      dplyr::mutate(
+        label = factor(label, levels = species_order)
+      )
+    
+    dodge <- position_dodge(width = 0.75)
+    
+    ggplot(plot_df, aes(x = average_abundance, y = label, fill = status)) +
+      geom_col(position = dodge) +
+      geom_errorbarh(
+        aes(
+          xmin = average_abundance - se,
+          xmax = average_abundance + se
+        ),
+        position = dodge,
+        height = 0.3
+      ) +
+      scale_fill_manual(
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        )
+      ) +
+      scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
+      labs(
+        x = "Average abundance per BRUV",
+        y = NULL,
+        title = title_lab,
+        fill = NULL
+      ) +
+      theme_classic() +
+      theme(
+        legend.position = "bottom",
+        axis.text.y = ggtext::element_markdown(size = 12)
+      )
+  }
+  
+  # observe({
+  #   req(input$bioregion)
+  #   
+  #   df <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+  #     dplyr::filter(bioregion == input$bioregion)
+  #   
+  #   years <- sort(unique(df$year))
+  #   
+  #   req(length(years) > 0)
+  #   
+  #   updateSelectInput(
+  #     session,
+  #     inputId = metric_year_input_id("bioregion", "total_abundance", "left"),
+  #     choices = years,
+  #     selected = min(years, na.rm = TRUE)
+  #   )
+  #   
+  #   updateSelectInput(
+  #     session,
+  #     inputId = metric_year_input_id("bioregion", "total_abundance", "right"),
+  #     choices = years,
+  #     selected = max(years, na.rm = TRUE)
+  #   )
+  # })
+  
+  output[[metric_plot_id("bioregion", "total_abundance", "left_year_status")]] <- renderPlot({
+    req(input$bioregion)
+    req(input[[metric_year_input_id("bioregion", "total_abundance", "left")]])
+    
+    make_top_abundance_bioregion_status_year_plot(
+      bioregion_name = input$bioregion,
+      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "left")]],
+      number_species = input$bioregion_number_species,
+      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "left")]]
+    )
+  })
+  
+  output[[metric_plot_id("bioregion", "total_abundance", "right_year_status")]] <- renderPlot({
+    req(input$bioregion)
+    req(input[[metric_year_input_id("bioregion", "total_abundance", "right")]])
+    
+    make_top_abundance_bioregion_status_year_plot(
+      bioregion_name = input$bioregion,
+      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+      number_species = input$bioregion_number_species,
+      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+    )
+  })
   
   
 }
