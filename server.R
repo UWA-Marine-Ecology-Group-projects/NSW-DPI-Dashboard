@@ -1,19 +1,27 @@
 # --------------------------- shared helpers ----------------------------------
 base_map <- function(max_zoom = 20, current_zoom = 9) {
   leaflet() |>
-    addTiles(options = tileOptions(minZoom = 4, max_zoom)) |>
+    addTiles(
+      group = "OpenStreetMap",
+      options = tileOptions(minZoom = 4, maxZoom = max_zoom)
+    ) |>
+    addProviderTiles(
+      providers$Esri.WorldImagery,
+      group = "Satellite",
+      options = providerTileOptions(minZoom = 4, maxZoom = max_zoom)
+    ) %>%
     setView(lng = mean(nsw_bruv_data$bruv_metadata$longitude_dd),
             lat = mean_lat, current_zoom) |>
     addMapPane("polys",  zIndex = 410) |>
     addMapPane("points", zIndex = 420) |>
     
-    # TODO add state marine parks
+    # TODO add NSW Marine Parks
     # Use regular polygons for static layers:
     # addPolygons(
     #   data = state_mp, 
     #   color = "black", weight = 1,
     #   fillColor = ~state.pal(zone), fillOpacity = 0.8,
-    #   group = "State Marine Parks",
+    #   group = "NSW Marine Parks",
     #   popup = ~name,
     #   options = pathOptions(pane = "polys")
     # ) |>
@@ -22,7 +30,7 @@ base_map <- function(max_zoom = 20, current_zoom = 9) {
       color = "black", weight = 1,
       fillColor = ~commonwealth.pal(zone), fillOpacity = 0.8,
       popup = ~ZoneName,
-      options = pathOptions(pane = "polys"), group = "Australian Marine Parks"
+      options = pathOptions(pane = "polys"), group = "Commonwealth Marine Parks"
     ) %>%
     
     # Legends
@@ -32,15 +40,15 @@ base_map <- function(max_zoom = 20, current_zoom = 9) {
     #   opacity = 1,
     #   title = "State Zones",
     #   position = "bottomright",
-    #   group = "State Marine Parks"
+    #   group = "NSW Marine Parks"
     # ) |>
     addLegend(
       pal = commonwealth.pal,
       values = commonwealth.mp$zone,
       opacity = 1,
-      title = "Australian Marine Park Zones",
+      title = "Commonwealth Marine Park Zones",
       position = "bottomright",
-      group = "Australian Marine Parks"
+      group = "Commonwealth Marine Parks"
     )
 }
 
@@ -219,12 +227,19 @@ server <- function(input, output, session) {
       ) %>%
       
       addLayersControl(
-        overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
+        baseGroups = c(
+          "OpenStreetMap",
+          "Satellite"
+        ),
+        overlayGroups = c("Sampling locations",
+                          "NSW Marine Parks",
+                          "Commonwealth Marine Parks"
+                          ),
         options = layersControlOptions(collapsed = FALSE),
         position = "topright"
       ) #%>%
     
-    # hideGroup("Australian Marine Parks") 
+    # hideGroup("Commonwealth Marine Parks") 
     
     
     m
@@ -284,12 +299,19 @@ server <- function(input, output, session) {
       ) %>%
       
       addLayersControl(
-        overlayGroups = c("Australian Marine Parks", "State Marine Parks", "Sampling locations"),
+        baseGroups = c(
+          "OpenStreetMap",
+          "Satellite"
+        ),
+        overlayGroups = c("Sampling locations",
+                          "NSW Marine Parks", 
+                          "Commonwealth Marine Parks"
+                          ),
         options = layersControlOptions(collapsed = FALSE),
         position = "topright"
       ) #%>%
     
-    # hideGroup("Australian Marine Parks") 
+    # hideGroup("Commonwealth Marine Parks") 
     
     
     m
@@ -844,10 +866,14 @@ server <- function(input, output, session) {
         opacity = 1
       ) %>%
       addLayersControl(
+        baseGroups = c(
+          "OpenStreetMap",
+          "Satellite"
+        ),
         overlayGroups = c(
-          "Australian Marine Parks",
-          "State Marine Parks",
-          "Metric values"
+          "Metric values",
+          "NSW Marine Parks",
+          "Commonwealth Marine Parks"
         ),
         options = layersControlOptions(collapsed = FALSE),
         position = "topright"

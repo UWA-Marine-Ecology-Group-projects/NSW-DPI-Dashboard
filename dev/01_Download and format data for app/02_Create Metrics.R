@@ -61,10 +61,20 @@ bioregions <- bruv_metadata %>%
   select(sample_url, bioregion, status) %>%
   sf::st_drop_geometry()
 
-bruv_count <- readRDS("data/raw/bruv_count_nsw.rds")
+# Get list of fish/shark/rays species ----
+fishes <- CheckEM::australia_life_history %>%
+  dplyr::filter(class %in% c("Actinopterygii", "Elasmobranchii")) %>%
+  dplyr::select(family, genus, species, rls_thermal_niche, australian_common_name)
+
+unique(fishes$class)
+
+bruv_count <- readRDS("data/raw/bruv_count_nsw.rds") %>%
+  dplyr::mutate(species = if_else(genus %in% "Pseudocaranx", "georgianus", species)) %>%
+  semi_join(fishes)
 
 bruv_length <- readRDS("data/raw/bruv_length_nsw.rds") %>%
-  left_join(bioregions)
+  left_join(bioregions) %>%
+  anti_join(!fishes)
 
 # Create lists of samples to join to complete data ----
 count_samples <- bruv_metadata %>%

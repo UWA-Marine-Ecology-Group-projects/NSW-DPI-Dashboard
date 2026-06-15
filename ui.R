@@ -1,9 +1,24 @@
 ui <- page_navbar(
+  # title = div(
+  #   "NSW DPI Dashboard",
+  #   favicon = "www/favicon.ico",
+  #   style = "display:flex; gap:10px; align-items:center; padding-right:15px; font-weight:bold; color:#063F5C;"
+  # ),
+  
   title = div(
-    "NSW DPI Dashboard",
-    favicon = "www/favicon.ico",
-    style = "display:flex; gap:10px; align-items:center; padding-right:15px; font-weight:bold; color:#063F5C;"
+    style = "display:flex; flex-direction:column; line-height:1.1; padding-right:15px; color:#063F5C;",
+    
+    div(
+      "New South Wales DPIRD Dashboard",
+      style = "font-weight:bold; font-size:1.1rem;"
+    ),
+    
+    div(
+      "Reef fish monitoring",
+      style = "font-size:0.8rem; font-weight:400; color:#4F6F7C;"
+    )
   ),
+  
   
   tags$head(
       rel = "stylesheet",
@@ -740,7 +755,7 @@ nav_spacer(),
 nav_item(
   tags$div(
     style = "display:flex; gap:10px; align-items:center; padding-right:15px;",
-    tags$img(src = "nsw_dpi_logo.jpg", height = "70px")
+    tags$img(src = "nsw_dpi_logo.png", height = "80px")
   )
 )
 )
