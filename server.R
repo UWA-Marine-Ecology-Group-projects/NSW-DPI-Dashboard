@@ -12,43 +12,46 @@ base_map <- function(max_zoom = 20, current_zoom = 9) {
     ) %>%
     setView(lng = mean(nsw_bruv_data$bruv_metadata$longitude_dd),
             lat = mean_lat, current_zoom) |>
-    addMapPane("polys",  zIndex = 410) |>
-    addMapPane("points", zIndex = 420) |>
+    # addMapPane("polys",  zIndex = 410) |>
+    # addMapPane("points", zIndex = 420) |>
     
     # TODO add NSW Marine Parks
     # Use regular polygons for static layers:
-    # addPolygons(
-    #   data = state_mp, 
-    #   color = "black", weight = 1,
-    #   fillColor = ~state.pal(zone), fillOpacity = 0.8,
-    #   group = "NSW Marine Parks",
-    #   popup = ~name,
-    #   options = pathOptions(pane = "polys")
-    # ) |>
+    addPolygons(
+      data = state_mp,
+      color = "black", weight = 1,
+      fillColor = ~state_pal(zone_type), fillOpacity = 0.8,
+      group = "NSW Marine Parks",
+      popup = ~comments,
+      label = ~comments#,
+      # options = pathOptions(pane = "polys")
+    ) |>
     addPolygons(
       data = commonwealth.mp,
       color = "black", weight = 1,
       fillColor = ~commonwealth.pal(zone), fillOpacity = 0.8,
       popup = ~ZoneName,
-      options = pathOptions(pane = "polys"), group = "Commonwealth Marine Parks"
+      # options = pathOptions(pane = "polys"), 
+      group = "Commonwealth Marine Parks"
     ) %>%
     
     # Legends
-    # addLegend(
-    #   pal = state.pal,
-    #   values = state_mp$zone,
-    #   opacity = 1,
-    #   title = "State Zones",
-    #   position = "bottomright",
-    #   group = "NSW Marine Parks"
-    # ) |>
+
     addLegend(
       pal = commonwealth.pal,
       values = commonwealth.mp$zone,
       opacity = 1,
-      title = "Commonwealth Marine Park Zones",
+      title = "Commonwealth Marine Parks",
       position = "bottomright",
       group = "Commonwealth Marine Parks"
+    ) %>%
+    addLegend(
+      pal = state_pal,
+      values = state_mp$zone_type,
+      opacity = 1,
+      title = "NSW Marine Parks",
+      position = "bottomright",
+      group = "NSW Marine Parks"
     )
 }
 
@@ -246,16 +249,33 @@ server <- function(input, output, session) {
     
     m <- base_map(current_zoom = 6) |>
       # define panes with explicit stacking
-      addMapPane("points",    zIndex = 411) |>
-      addMapPane("highlight", zIndex = 415) %>%
+      # addMapPane("points",    zIndex = 411) |>
+      addMapPane("points", zIndex = 430) %>%
+      # addMapPane("highlight", zIndex = 415) %>%
       
-      leafgl::addGlPoints(
+      # leafgl::addGlPoints(
+      #   data = pts,
+      #   # fillColor = method_cols[pts$method],
+      #   weight = 1,
+      #   # popup = pts$popup,
+      #   group = "Sampling locations",
+      #   pane  = "points"
+      # ) %>%
+      
+      addCircleMarkers(
         data = pts,
-        # fillColor = method_cols[pts$method],
+        radius = 3,
+        fillOpacity = 1,
+        color = "#063F5C",
         weight = 1,
-        # popup = pts$popup,
+        opacity = 1,
         group = "Sampling locations",
-        pane  = "points"
+        options = pathOptions(pane = "points"),
+        clusterOptions = markerClusterOptions(
+          maxClusterRadius = 40,      # Smaller cluster groups
+          showCoverageOnHover = TRUE,
+          disableClusteringAtZoom = 8
+        )
       ) %>%
       
       addLayersControl(
@@ -309,7 +329,7 @@ server <- function(input, output, session) {
     
     req(input$bioregion)
     
-    method_cols <- c("BRUVs" = "#004DA7", "UVC" = "#C600FF")
+    method_cols <- c("BRUVs" = "#063F5C", "UVC" = "#C600FF")
     
     pts <- bioregion_deployments()
     
@@ -318,16 +338,33 @@ server <- function(input, output, session) {
       fitBounds(bio_min_lon(), bio_min_lat(), bio_max_lon(), bio_max_lat()) %>%
       
       # define panes with explicit stacking
-      addMapPane("points",    zIndex = 411) |>
-      addMapPane("highlight", zIndex = 415) %>%
+      # addMapPane("points",    zIndex = 411) |>
+      # addMapPane("highlight", zIndex = 415) %>%
+      addMapPane("points", zIndex = 430) %>%
       
-      leafgl::addGlPoints(
+      # leafgl::addGlPoints(
+      #   data = pts,
+      #   # fillColor = method_cols[pts$method],
+      #   weight = 1,
+      #   # popup = pts$popup,
+      #   group = "Sampling locations"#,
+      #   # pane  = "points"
+      # ) %>%
+      
+      addCircleMarkers(
         data = pts,
-        # fillColor = method_cols[pts$method],
+        radius = 3,
+        fillOpacity = 1,
+        color = "#063F5C",
         weight = 1,
-        # popup = pts$popup,
+        opacity = 1,
         group = "Sampling locations",
-        pane  = "points"
+        options = pathOptions(pane = "points"),
+        clusterOptions = markerClusterOptions(
+          maxClusterRadius = 40,      # Smaller cluster groups
+          showCoverageOnHover = TRUE,
+          disableClusteringAtZoom = 11
+        )
       ) %>%
       
       addLayersControl(
@@ -341,9 +378,9 @@ server <- function(input, output, session) {
                           ),
         options = layersControlOptions(collapsed = FALSE),
         position = "topright"
-      ) #%>%
+      ) %>%
     
-    # hideGroup("Commonwealth Marine Parks") 
+    hideGroup("Commonwealth Marine Parks")
     
     
     m

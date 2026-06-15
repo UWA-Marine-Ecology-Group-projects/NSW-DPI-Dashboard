@@ -67,6 +67,25 @@ bioregions <- bruv_metadata %>%
   select(sample_url, bioregion, status) %>%
   sf::st_drop_geometry()
 
+# Create state marineparks ----
+# TODO move this somewhere else
+
+# state_shp <- sf::st_read("data/spatial/Collaborative_Australian_Protected_Areas_Database_(CAPAD)_2024_-_Marine.shp") %>%
+#   clean_names() %>%
+#   dplyr::filter(state %in% "NSW") %>%
+#   dplyr::select(name, type, iucn, state, comments) %>%
+#   mutate(
+#     zone_type = str_extract(
+#       comments,
+#       regex(
+#         "Habitat Protection Zone|Special Purpose Zone|Sanctuary Zone|General Use Zone|Aquatic Reserve",
+#         ignore_case = FALSE
+#       )
+#     )
+#   )
+# 
+# state_mp <- saveRDS(state_shp, "app_data/spatial/sa_state_mp.rds")
+
 # Get list of fish/shark/rays species ----
 fishes <- CheckEM::australia_life_history %>%
   dplyr::filter(class %in% c("Actinopterygii", "Elasmobranchii")) %>%

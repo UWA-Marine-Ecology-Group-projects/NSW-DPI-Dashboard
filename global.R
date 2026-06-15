@@ -27,16 +27,25 @@ mean_lat <- (min_lat + max_lat)/2
 commonwealth.mp <- readRDS("app_data/spatial/commonwealth.mp.RDS") %>%
   st_as_sf() 
 
-# state_mp <- readRDS("app_data/spatial/sa_state_mp.RDS")
+state_mp <- readRDS("app_data/spatial/sa_state_mp.rds")
 
 # # Pallettes for maps ----
-# state.pal <- colorFactor(c("#f18080", # Restricted Access Zone (RAZ)
-#                            "#69a802", # Sanctuary Zone (SZ)
-#                            "#799CD2", # Habitat Protection (HPZ)
-#                            "#BED4EE" # General Managed Use Zone (GMUZ)
-# ), state_mp$zone)
+state_pal <- colorFactor(c("#FFC2C1", # "Sanctuary Zone"
+                           "#C2FCFF", # "General Use Zone"
+                           "#FFFFBD", # "Habitat Protection Zone"
+                           "#7ECE6F", #"Aquatic Reserve" 
+                           "#0012FF"  #"Special Purpose Zone"   
+  
+  
+  
+  
+  # "#f18080", # Restricted Access Zone (RAZ)
+  #                          "#69a802", # Sanctuary Zone (SZ)
+  #                          "#799CD2", # Habitat Protection (HPZ)
+  #                          "#BED4EE" # General Managed Use Zone (GMUZ)
+), state_mp$zone_type)
 # 
-# # unique(state.mp$zone_type)
+unique(state_mp$zone_type)
 # 
 commonwealth.pal <- colorFactor(c("#f6c1d9", # Sanctuary
                                   "#7bbc63", # National Park
