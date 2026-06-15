@@ -247,14 +247,6 @@ top_50_most_abundant_species_bioregion_status <- complete_bruv_count %>%
   dplyr::mutate(by_status = TRUE) %>%
   glimpse
 
-test <- top_50_most_abundant_species_bioregion %>%
-  group_by(bioregion) %>%
-  count()
-
-test <- top_50_most_abundant_species_bioregion_status %>%
-  group_by(bioregion) %>%
-  count()
-
 common_names <- CheckEM::australia_life_history %>%
   select(family, genus, species, australian_common_name)
 
@@ -400,6 +392,10 @@ cti_top_10 <- complete_bruv_count %>%
   ) %>%
   glimpse
 
+top_50_abundance <- complete_bruv_count %>%
+  semi_join(top_50_species_bioregions) %>%
+  left_join(bruv_metadata)
+
 # Combined data
 nsw_bruv_data <- structure(
   list(
@@ -414,7 +410,9 @@ nsw_bruv_data <- structure(
     cti_top_10 = cti_top_10, 
     
     # TODO add shapefiles here
-    bioregions_shp = bioregions_shp
+    bioregions_shp = bioregions_shp,
+    
+    top_50_abundance = top_50_abundance
     
   ), class = "data")
 

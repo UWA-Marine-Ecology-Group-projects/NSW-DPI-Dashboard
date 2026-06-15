@@ -96,9 +96,48 @@ metric_year_input_id <- function(prefix, metric_id, which) {
   paste0(prefix, "_", which, "_year_", metric_id)
 }
 
-metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = NULL) {
+metric_species_input_id <- function(prefix, metric_id, which) {
+  paste0(prefix, "_", metric_id)
+}
+
+metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = NULL, species_choices = NULL) {
   
   data_id <- metric_id
+  
+  # Special layout for species
+  if (metric_id == "species") {
+    return(
+      tagList(
+        
+        selectInput(
+          inputId = metric_species_input_id(prefix, data_id),
+          label   = "Choose a species",
+          choices = species_choices,
+          width = "100%",
+          selected = species_choices[1]
+        ),
+        
+        layout_columns(
+          col_widths = c(6,6),
+          metric_plotOutput(
+            prefix = prefix,
+            metric_id = data_id,
+            which = "year",
+            height = 600
+          ),
+          
+          metric_leafletOutput(
+            prefix = prefix,
+            metric_id = data_id,
+            which = "map",
+            height = 500
+          )
+        )
+      )
+    )
+  }
+  
+  # Default layout for all other metrics
   
   tagList(
     
@@ -180,36 +219,13 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
           col_widths = c(12),
           
           div(
-            # selectInput(
-            #   inputId = metric_year_input_id(prefix, data_id, "left"),
-            #   label   = "Choose a year",
-            #   choices = year_choices,
-            #   width = "100%",
-            #   selected = if (!is.null(year_choices) && length(year_choices) > 0) min(year_choices, na.rm = TRUE) else NULL
-            # ),
             metric_plotOutput(
               prefix = prefix,
               metric_id = data_id,
               which = "diagnostic",
               height = 900
             )
-          )#,
-          
-          # div(
-          #   selectInput(
-          #     inputId = metric_year_input_id(prefix, data_id, "right"),
-          #     label   = "Choose a year",
-          #     choices = year_choices,
-          #     width = "100%",
-          #     selected = if (!is.null(year_choices) && length(year_choices) > 0) max(year_choices, na.rm = TRUE) else NULL
-          #   ),
-          #   metric_plotOutput(
-          #     prefix = prefix,
-          #     metric_id = data_id,
-          #     which = "right_year_status",
-          #     height = 500
-          #   )
-          # )
+          )
         )
       )
     }
@@ -553,6 +569,14 @@ server <- function(input, output, session) {
       unique() %>%
       sort()
     
+    species_choices <- nsw_bruv_data$top_species %>%
+      dplyr::filter(group == "bioregion") %>%
+      dplyr::filter(by_status == FALSE) %>%
+      dplyr::filter(bioregion == input$bioregion) %>%
+      arrange(dplyr::desc(average_abundance)) %>%
+      dplyr::pull(display_name) %>%
+      unique()
+    
     bslib::navset_card_tab(
       !!!lapply(names(metric_defs), function(id) {
         bslib::nav(
@@ -560,7 +584,8 @@ server <- function(input, output, session) {
           metric_tab_body_ui(
             metric_id = id,
             prefix = "bioregion",
-            year_choices = year_choices
+            year_choices = year_choices,
+            species_choices = species_choices
           )
         )
       })
@@ -698,21 +723,6 @@ server <- function(input, output, session) {
       glimpse
     
     ggplot(df, aes(x = .data[[x_col]], y = value, fill = status, colour = status)) +
-      
-      # geom_boxplot(
-      #   width = 0.6,
-      #   outlier.shape = NA,
-      #   alpha = 0.85,
-      #   colour = "black"
-      # ) +
-      # 
-      # geom_jitter(
-      #   width = 0.15,
-      #   height = 0,
-      #   alpha = 0.35,
-      #   size = 1.2
-      # ) +
-      
       geom_pointrange(
         data = mean_se,
         aes(
@@ -733,12 +743,6 @@ server <- function(input, output, session) {
         x        = NULL,
         y        = get_metric_label(metric_id)
       ) +
-      
-      # scale_y_continuous(
-      #   limits = c(0, NA),
-      #   expand = expansion(mult = c(0, 0.05))
-      # ) +
-      
       scale_x_date(
         date_labels = "%Y",
         date_breaks = "1 year",

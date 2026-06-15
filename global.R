@@ -27,7 +27,7 @@ mean_lat <- (min_lat + max_lat)/2
 commonwealth.mp <- readRDS("app_data/spatial/commonwealth.mp.RDS") %>%
   st_as_sf() 
 
-state_mp <- readRDS("app_data/spatial/sa_state_mp.rds")
+state_mp <- readRDS("app_data/spatial/sa_state_mp.RDS")
 
 # # Pallettes for maps ----
 state_pal <- colorFactor(c("#FFC2C1", # "Sanctuary Zone"
@@ -62,7 +62,8 @@ metric_defs <- c(
   species_richness      = "Species richness",
   total_abundance = "Total abundance",
   alt   = "Abundance of large teleosts",
-  blt   = "Biomass of large teleosts (BLT)"
+  blt   = "Biomass of large teleosts (BLT)",
+  species = "Choose a species"
 )
 
 metric_y_lab <- list(
@@ -70,7 +71,8 @@ metric_y_lab <- list(
   total_abundance = "Average no. individuals",
   cti           = "Community temperature index (°C)",
   alt = "Average no. individuals",
-  blt   = "Biomass (kg)"
+  blt   = "Biomass (kg)",
+  species = "Average no. individuals"
 )
 
 # Deploy app ----
