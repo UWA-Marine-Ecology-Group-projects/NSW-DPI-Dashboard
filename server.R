@@ -84,17 +84,6 @@ metric_leafletOutput <- function(prefix, metric_id, which = "map", height = 500,
     )
   )
 }
-# metric_plot_id <- function(prefix, metric_id, which) {
-#   paste0(prefix, "_plot_", metric_id, "_", which)
-# }
-# 
-# metric_plotOutput <- function(prefix, metric_id, which, height = 600, spinner_type = 6) {
-#   withSpinner(
-#     plotOutput(metric_plot_id(prefix, metric_id, which), height = height),
-#     color = getOption("spinner.color", default = "#0D576E"),
-#     type = spinner_type
-#   )
-# }
 
 metric_plot_type_input_id <- function(prefix, metric_id) {
   paste0(prefix, "_", metric_id, "_plot_type")
@@ -175,6 +164,49 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               height = 500
             )
           )
+        )
+      )
+    },
+    
+    if (metric_id == "cti") {
+      card(
+        full_screen = TRUE,
+        card_header("Diagnostic plots"),
+        
+        layout_columns(
+          col_widths = c(12),
+          
+          div(
+            # selectInput(
+            #   inputId = metric_year_input_id(prefix, data_id, "left"),
+            #   label   = "Choose a year",
+            #   choices = year_choices,
+            #   width = "100%",
+            #   selected = if (!is.null(year_choices) && length(year_choices) > 0) min(year_choices, na.rm = TRUE) else NULL
+            # ),
+            metric_plotOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "diagnostic",
+              height = 900
+            )
+          )#,
+          
+          # div(
+          #   selectInput(
+          #     inputId = metric_year_input_id(prefix, data_id, "right"),
+          #     label   = "Choose a year",
+          #     choices = year_choices,
+          #     width = "100%",
+          #     selected = if (!is.null(year_choices) && length(year_choices) > 0) max(year_choices, na.rm = TRUE) else NULL
+          #   ),
+          #   metric_plotOutput(
+          #     prefix = prefix,
+          #     metric_id = data_id,
+          #     which = "right_year_status",
+          #     height = 500
+          #   )
+          # )
         )
       )
     }
@@ -597,7 +629,7 @@ server <- function(input, output, session) {
   # }
   # 
   make_metric_boxplot_year <- function(metric_id,
-                                       x_col = "start_month",
+                                       x_col = "year",
                                        plot_title = NULL,
                                        plot_subtitle = NULL) {
     
@@ -608,10 +640,10 @@ server <- function(input, output, session) {
       need(x_col %in% names(df), paste("Column", x_col, "not found in metrics data"))
     )
     
-    # Make start_month a real date
+    # Make year a real date
     df <- df %>%
       dplyr::mutate(
-        start_month = as.Date(paste0(start_month, "-01"))
+        year = as.Date(paste0(year, "-01", "-01"))
       )
     
     mean_se <- df %>%
@@ -654,7 +686,7 @@ server <- function(input, output, session) {
           fill = status,
           colour = status
         ),
-        position = position_dodge(width = 0.5),
+        position = position_dodge(width = 3),
         inherit.aes = FALSE,
         # colour = "black",
         linewidth = 0.6
@@ -662,9 +694,7 @@ server <- function(input, output, session) {
       
       labs(
         x        = NULL,
-        y        = get_metric_label(metric_id)#,
-        # title    = plot_title,
-        # subtitle = plot_subtitle
+        y        = get_metric_label(metric_id)
       ) +
       
       # scale_y_continuous(
@@ -673,7 +703,7 @@ server <- function(input, output, session) {
       # ) +
       
       scale_x_date(
-        date_labels = "%Y-%m",
+        date_labels = "%Y",
         date_breaks = "1 year",
         expand = expansion(mult = c(0.02, 0.02))
       ) +
@@ -693,7 +723,7 @@ server <- function(input, output, session) {
   make_metric_year_plot <- function(metric_id) {
     make_metric_boxplot_year(
       metric_id     = metric_id,
-      x_col         = "start_month",
+      x_col         = "year",
       plot_title    = metric_defs[[metric_id]],
       plot_subtitle = paste(input$bioregion, collapse = ", ")
     )
@@ -1041,6 +1071,97 @@ server <- function(input, output, session) {
       selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
       number_species = input$bioregion_number_species,
       title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+    )
+  })
+  
+  
+  # CTI DIAGNOSTIC PLOTS ----
+  make_top_cti_year_plot <- function(
+    bioregion_name,
+    # selected_year,
+    # number_species = 10,
+    title_lab = NULL
+  ) {
+    
+    req(bioregion_name)
+    
+    message(bioregion_name)
+    message("CTI plots")
+    
+    df_raw <- nsw_bruv_data$cti_top_10 %>%
+      dplyr::filter(bioregion == bioregion_name) %>%
+      glimpse
+    
+    # choose the centering statistic
+    mid_niche <- median(df_raw$rls_thermal_niche, na.rm = TRUE)
+    
+    # global limits across both facets/years
+    niche_limits <- range(df_raw$rls_thermal_niche, na.rm = TRUE)
+    
+    ggplot(
+      df_raw,
+      aes(
+        x = reorder_within(label, rls_thermal_niche, year),
+        y = maxn,
+        fill = rls_thermal_niche
+      )
+    ) +
+      geom_col(colour = "black", linewidth = 0.25) +
+      geom_errorbar(
+        aes(
+          ymin = pmax(maxn - se, 0),
+          ymax = maxn + se
+        ),
+        width = 0.2
+      ) +
+      geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+      coord_flip(clip = "off") +
+      facet_wrap(~year, scales = "free_y") +
+      scale_x_reordered() +
+      scale_y_continuous(
+        trans = log1p10_trans,
+        expand = expansion(mult = c(0, 0.15)),
+        breaks = c(0, 5, 10, 20, 30),
+        labels = scales::label_number()
+      ) +
+      # centre GREY at the mean thermal niche
+      scale_fill_gradientn(
+        colours = c(
+          "#2166ac",
+          "#67a9cf",
+          "#d1e5f0",
+          "#fddbc7",
+          "#ef8a62",
+          "#b2182b"
+          
+        ),
+        values  = scales::rescale(c(niche_limits[1],
+                                    mid_niche,
+                                    niche_limits[2])),
+        limits = niche_limits,
+        na.value = "grey80"
+      ) +
+      guides(fill = "none") +
+      labs(
+        x = "Species",
+        y = expression(Log[10]~(Average~abundance~+~1))
+      ) +
+      theme_bw() +
+      theme_classic() +
+      theme(
+        # legend.position = "bottom",
+        axis.text.y = ggtext::element_markdown(size = 12)
+      )
+  }
+  
+  output[[metric_plot_id("bioregion", "cti", "diagnostic")]] <- renderPlot({
+    req(input$bioregion)
+    
+    make_top_cti_year_plot(
+      bioregion_name = input$bioregion#,
+      # selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+      # number_species = input$bioregion_number_species,
+      # title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
     )
   })
   

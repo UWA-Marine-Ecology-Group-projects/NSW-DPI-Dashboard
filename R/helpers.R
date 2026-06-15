@@ -1,3 +1,10 @@
+log1p10_trans <- trans_new(
+  name = "log10p1",
+  transform = function(x) log10(x + 1),
+  inverse   = function(x) 10^x - 1
+)
+
+
 # Theme for plotting ----
 ggplot_theme <- 
   ggplot2::theme_bw() +

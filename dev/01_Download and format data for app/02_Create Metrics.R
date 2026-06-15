@@ -12,7 +12,12 @@ library(sf)
 bruv_metadata <- readRDS("data/raw/bruv_metadata_nsw.rds") %>%
   dplyr::select(campaignid, sample, everything()) %>%
   dplyr::mutate(year = str_sub(date_time, 1, 4)) %>%
-  dplyr::mutate(date = as.Date(date_time)) 
+  dplyr::mutate(date = as.Date(date_time)) %>%
+  dplyr::mutate(month = str_sub(date_time, 6, 7)) %>%
+  dplyr::filter(!month %in% c("01", "02", "12")) %>% # Remove summer
+  glimpse
+
+unique(bruv_metadata$month) %>% sort()
 
 campaign_lookup <- bruv_metadata %>%
   dplyr::select(campaignid, sample, date_time, date) %>%
@@ -32,6 +37,7 @@ campaign_lookup <- bruv_metadata %>%
   dplyr::ungroup() %>%
   dplyr::select(campaignid, date, event_number, start_date, new_campaignid) %>%
   dplyr::mutate(start_month = str_sub(start_date, 1, 7)) %>%
+  dplyr::mutate(year = str_sub(date, 1, 4)) %>%
   dplyr::distinct()
 
 unique(bruv_metadata$campaignid)
@@ -70,11 +76,13 @@ unique(fishes$class)
 
 bruv_count <- readRDS("data/raw/bruv_count_nsw.rds") %>%
   dplyr::mutate(species = if_else(genus %in% "Pseudocaranx", "georgianus", species)) %>%
-  semi_join(fishes)
+  semi_join(fishes) %>%
+  semi_join(bruv_metadata)
 
 bruv_length <- readRDS("data/raw/bruv_length_nsw.rds") %>%
   left_join(bioregions) %>%
-  anti_join(!fishes)
+  semi_join(fishes) %>%
+  semi_join(bruv_metadata)
 
 # Create lists of samples to join to complete data ----
 count_samples <- bruv_metadata %>%
@@ -82,7 +90,6 @@ count_samples <- bruv_metadata %>%
 
 length_samples <- bruv_metadata %>%
   filter(successful_length %in% TRUE)
-
 
 # Calculate Metrics ----
 ## Total Abundance ----
@@ -229,6 +236,9 @@ test <- top_50_most_abundant_species_bioregion_status %>%
   group_by(bioregion) %>%
   count()
 
+common_names <- CheckEM::australia_life_history %>%
+  select(family, genus, species, australian_common_name)
+
 top_50_most_abundant_species_bioregion_status_year <- complete_bruv_count %>%
   left_join(count_samples) %>%
   dplyr::group_by(bioregion, status, year, family, genus, species) %>% 
@@ -261,8 +271,7 @@ names(top_50_most_abundant_species_bioregion_status_year)
 # TODO by year??
 
 # Combine top species data frames ----
-common_names <- CheckEM::australia_life_history %>%
-  select(family, genus, species, australian_common_name)
+
 
 top_species <- bind_rows(top_50_most_abundant_species_overall,
                          top_50_most_abundant_species_bioregion,
@@ -330,6 +339,48 @@ bioregion_stats
 top_species
 metrics
 
+
+
+# Diagnostic plots ----
+# CTI -----
+sti <- CheckEM::australia_life_history %>%
+  clean_names() %>%
+  dplyr::select(family, genus, species, rls_thermal_niche) %>%
+  mutate(scientific = paste(family, genus, species, sep = " ")) %>%
+  dplyr::distinct() %>%
+  glimpse()
+
+# Thermal Index stacked plot
+cti_top_10 <- complete_bruv_count %>%
+  left_join(count_samples) %>%
+  mutate(scientific = paste(family, genus, species, sep = " ")) %>%
+  mutate(label = paste(genus, species, sep = " ")) %>%
+  group_by(bioregion, year, scientific, label) %>%
+  summarise(
+    n    = sum(!is.na(count)),
+    maxn = mean(count, na.rm = TRUE),
+    se   = stats::sd(count, na.rm = TRUE) / sqrt(n),#sd(count, na.rm = TRUE) / sqrt(dplyr::n()),
+    .groups = "drop") %>%
+  left_join(sti) %>%
+  filter(!is.na(rls_thermal_niche)) %>%
+  group_by(bioregion, year) %>%
+  slice_max(order_by = maxn, n = 10, with_ties = FALSE) %>%
+  ungroup() %>%
+  # dplyr::filter(bioregion %in% "Tweed-Moreton") %>%
+  left_join(common_names) %>%
+  mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))  %>%
+  tidyr::extract(
+    display_name,
+    into   = c("sci", "common"),
+    regex  = "^(.*?)\\s*\\((.*?)\\)$",
+    remove = FALSE
+  ) |>
+  dplyr::mutate(
+    label = paste0("*", sci, "*<br>(", common, ")"),
+    niche_lab = scales::number(rls_thermal_niche, accuracy = 0.01)
+  ) %>%
+  glimpse
+
 # Combined data
 nsw_bruv_data <- structure(
   list(
@@ -340,6 +391,8 @@ nsw_bruv_data <- structure(
     top_species = top_species,
     top_50_most_abundant_species_bioregion_status_year = top_50_most_abundant_species_bioregion_status_year,
     metrics = metrics,
+    
+    cti_top_10 = cti_top_10, 
     
     # TODO add shapefiles here
     bioregions_shp = bioregions_shp
