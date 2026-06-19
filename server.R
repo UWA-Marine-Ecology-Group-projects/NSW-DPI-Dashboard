@@ -96,7 +96,7 @@ metric_year_input_id <- function(prefix, metric_id, which) {
   paste0(prefix, "_", which, "_year_", metric_id)
 }
 
-metric_species_input_id <- function(prefix, metric_id, which) {
+metric_species_input_id <- function(prefix, metric_id) {
   paste0(prefix, "_", metric_id)
 }
 
@@ -827,45 +827,18 @@ server <- function(input, output, session) {
     df <- nsw_bruv_data$metrics %>%
       dplyr::filter(bioregion %in% input$bioregion) %>%
       dplyr::filter(metric == metric_id)
+      
     
-    # If latitude/longitude are already in nsw_bruv_data$metrics, this will do nothing.
-    # If they are not, join them from bruv_metadata.
-    if (!all(c("latitude_dd", "longitude_dd") %in% names(df))) {
-      
-      join_cols <- intersect(
-        c("deployment_id", "sample_id", "sample", "sample_name", "deployment"),
-        names(df)
-      )
-      
-      metadata_join_cols <- intersect(join_cols, names(nsw_bruv_data$bruv_metadata))
-      
-      validate(
-        need(
-          length(metadata_join_cols) > 0,
-          "No matching sample/deployment ID found to join metric data to BRUV metadata."
-        )
-      )
-      
-      join_col <- metadata_join_cols[1]
-      
+    # TODO include latitude and longitude in create metrics script
       df <- df %>%
         dplyr::left_join(
           nsw_bruv_data$bruv_metadata %>%
             dplyr::select(
-              dplyr::all_of(join_col),
+              campaignid, sample, sample_url,
               latitude_dd,
               longitude_dd
-            ),
-          by = join_col
-        )
-    }
-    
-    df %>%
-      dplyr::filter(
-        !is.na(latitude_dd),
-        !is.na(longitude_dd),
-        !is.na(value)
-      )
+            )
+          )
   }
   
   make_metric_leaflet_map <- function(metric_id) {
@@ -1206,5 +1179,101 @@ server <- function(input, output, session) {
     )
   })
   
+  # SPECIES SPEFICIC DIAGNOSTIC PLOTS ----
+  make_species_year_plot <- function(
+    bioregion_name,
+    title_lab = NULL,
+    selected_species
+  ) {
+    
+    req(bioregion_name)
+    req(selected_species)
+    
+    message(bioregion_name)
+    message(paste("Species plots:", selected_species))
+    
+    df <- nsw_bruv_data$top_50_abundance %>%
+      dplyr::filter(bioregion == bioregion_name) %>%
+      dplyr::filter(display_name %in% selected_species) %>%
+      dplyr::mutate(year = as.Date(paste0(year, "-01", "-01"))) #%>% # Make year a real date
+      #glimpse
+    
+    mean_se <- df %>%
+      dplyr::group_by(year, status) %>%
+      dplyr::summarise(
+        n    = sum(!is.na(count)),
+        mean = mean(count, na.rm = TRUE),
+        se   = dplyr::if_else(
+          n > 1,
+          stats::sd(count, na.rm = TRUE) / sqrt(n),
+          0
+        ),
+        .groups = "drop"
+      ) %>%
+      glimpse
+    
+    ggplot(df, aes(x = year, y = value, fill = status, colour = status)) +
+      geom_pointrange(
+        data = mean_se,
+        aes(
+          x    = year,
+          y    = mean,
+          ymin = mean - se,
+          ymax = mean + se,
+          fill = status,
+          colour = status
+        ),
+        position = position_dodge(width = 3),
+        inherit.aes = FALSE,
+        # colour = "black",
+        linewidth = 0.6
+      ) +
+      
+      labs(
+        x        = NULL,
+        y        = "Average MaxN"
+      ) +
+      scale_x_date(
+        date_labels = "%Y",
+        date_breaks = "1 year",
+        expand = expansion(mult = c(0.02, 0.02))
+      ) +
+      
+      theme_minimal(base_size = 16) +
+      theme(
+        # legend.position  = "none",
+        panel.grid.minor = element_blank()
+      ) +
+      scale_colour_manual(
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        ))+ 
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    
+    
+    
+    
+    
+    # ggplot()+
+    #   guides(fill = "none") +
+    #   labs(
+    #     x = "Species",
+    #     y = "Test") +
+    #   theme_bw() +
+    #   theme_classic() +
+    #   theme(
+    #     # legend.position = "bottom",
+    #     axis.text.y = ggtext::element_markdown(size = 12)
+    #   )
+  }
   
+  output[[metric_plot_id("bioregion", "species", "year")]] <- renderPlot({
+    req(input$bioregion)
+    
+    make_species_year_plot(
+      bioregion_name = input$bioregion,
+      selected_species = input[[metric_species_input_id("bioregion", "species")]]
+    )
+  })
 }

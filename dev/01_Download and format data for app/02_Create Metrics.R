@@ -394,7 +394,9 @@ cti_top_10 <- complete_bruv_count %>%
 
 top_50_abundance <- complete_bruv_count %>%
   semi_join(top_50_species_bioregions) %>%
-  left_join(bruv_metadata)
+  left_join(bruv_metadata) %>%
+  left_join(common_names) %>%
+  mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))
 
 # Combined data
 nsw_bruv_data <- structure(
