@@ -841,6 +841,7 @@ server <- function(input, output, session) {
           )
   }
   
+  # TODO update labels for the pop-ups
   make_metric_leaflet_map <- function(metric_id) {
     
     pts <- bioregion_metric_map_data(metric_id)
@@ -1250,28 +1251,125 @@ server <- function(input, output, session) {
           "No-Take" = "#67C7BB"
         ))+ 
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-    
-    
-    
-    
-    
-    # ggplot()+
-    #   guides(fill = "none") +
-    #   labs(
-    #     x = "Species",
-    #     y = "Test") +
-    #   theme_bw() +
-    #   theme_classic() +
-    #   theme(
-    #     # legend.position = "bottom",
-    #     axis.text.y = ggtext::element_markdown(size = 12)
-    #   )
   }
   
   output[[metric_plot_id("bioregion", "species", "year")]] <- renderPlot({
     req(input$bioregion)
     
     make_species_year_plot(
+      bioregion_name = input$bioregion,
+      selected_species = input[[metric_species_input_id("bioregion", "species")]]
+    )
+  })
+  
+  
+  
+  bioregion_species_map_data <- function(selected_species, bioregion_name) {
+    req(input$bioregion)
+    
+    df <- nsw_bruv_data$top_50_abundance %>%
+      dplyr::filter(bioregion == bioregion_name) %>%
+      dplyr::filter(display_name %in% selected_species) %>%
+      dplyr::mutate(year = as.Date(paste0(year, "-01", "-01"))) #%>% # Make year a real date
+    #glimpse
+    
+    # TODO include latitude and longitude in create metrics script
+    df <- df %>%
+      dplyr::left_join(
+        nsw_bruv_data$bruv_metadata %>%
+          dplyr::select(
+            campaignid, sample, sample_url,
+            latitude_dd,
+            longitude_dd
+          )
+      )
+  }
+  
+  make_species_leaflet_map <- function(selected_species, bioregion_name) {
+    
+    pts <- bioregion_species_map_data(selected_species, bioregion_name)
+    
+    validate(
+      need(nrow(pts) > 0, paste("No mappable data available for", selected_species))
+    )
+    
+    pal <- leaflet::colorNumeric(
+      palette = "viridis",
+      domain = pts$count,
+      na.color = "#BDBDBD"
+    )
+    
+    # Rescale point radius safely
+    if (length(unique(stats::na.omit(pts$count))) <= 1) {
+      pts$radius <- 8
+    } else {
+      pts$radius <- scales::rescale(
+        pts$count,
+        to = c(4, 14),
+        from = range(pts$count, na.rm = TRUE)
+      )
+    }
+    
+    pts <- pts %>%
+      dplyr::mutate(
+        popup_text = paste0(
+          "<strong> MaxN</strong><br>",
+          "count: ", round(count, 2), "<br>",
+          "Status: ", status, "<br>"
+        )
+      )
+    
+    legend_title <- stringr::str_wrap("MaxN", width = 15)
+    legend_title <- gsub("\n", "<br>", legend_title)
+    
+    base_map(current_zoom = 6) %>%
+      fitBounds(
+        lng1 = min(pts$longitude_dd, na.rm = TRUE),
+        lat1 = min(pts$latitude_dd,  na.rm = TRUE),
+        lng2 = max(pts$longitude_dd, na.rm = TRUE),
+        lat2 = max(pts$latitude_dd,  na.rm = TRUE)
+      ) %>%
+      addMapPane("metric_points", zIndex = 430) %>%
+      addCircleMarkers(
+        data = pts,
+        lng = ~longitude_dd,
+        lat = ~latitude_dd,
+        radius = ~radius,
+        fillColor = ~pal(count),
+        fillOpacity = 0.8,
+        color = "#FFFFFF",
+        weight = 1,
+        opacity = 1,
+        popup = ~popup_text,
+        group = "Sampling points",
+        options = pathOptions(pane = "metric_points")
+      ) %>%
+      addLegend(
+        pal = pal,
+        values = pts$count,
+        title = htmltools::HTML(legend_title),
+        position = "topleft",
+        opacity = 1
+      ) %>%
+      addLayersControl(
+        baseGroups = c(
+          "OpenStreetMap",
+          "Satellite"
+        ),
+        overlayGroups = c(
+          "Sampling points",
+          "NSW Marine Parks",
+          "Commonwealth Marine Parks"
+        ),
+        options = layersControlOptions(collapsed = FALSE),
+        position = "topright"
+      )
+  }
+  
+  output[[metric_plot_id("bioregion", "species", "map")]] <- renderLeaflet({
+    # req(input$bioregion)
+
+    make_species_leaflet_map(
       bioregion_name = input$bioregion,
       selected_species = input[[metric_species_input_id("bioregion", "species")]]
     )
