@@ -432,10 +432,10 @@ nav_panel(
       ),
       
       card(
-        card_header("Dashboard Aims"),
+        card_header("Overview"),
         card_body(
-          p(HTML("This dashboard provides a visual assessment ...")),
-          p("By integrating standardised, quality-controlled BRUV annotations with clear temporal comparisons, the dashboard helps highlight shifts in community structure and supports evidence-based management decisions.")
+          p(HTML("Subtidal rocky reefs support many of NSW’s most ecologically, culturally and economically important fish species. Effective monitoring of these fish communities is essential for understanding ecosystem condition, detecting environmental change, and providing evidence to support the sustainable management of marine resources. This includes fisheries stock assessments, harvest strategies and broader marine estate management by providing independent information on the abundance, distribution and population structure of reef-associated fish species.")),
+          p("This dashboard presents data collected through the NSW Statewide Baited Remote Underwater Video (BRUV) program, part of the NSW Marine Estate Management Strategy (MEMS) Subtidal Reef Monitoring Program, and the NSW Australian Temperate Reef Collaboration (NSW DPIRD and University of Tasmania) and the citizen science program Reef Life Survey. The program provides a consistent, long-term assessment of fish assemblages across NSW coastal waters, generating information on species diversity, relative abundance and spatial patterns. These data support the evaluation of environmental outcomes and help inform fisheries management, marine park management and evidence-based decision making across the NSW marine estate.")
         )
       ),
     ),
