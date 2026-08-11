@@ -63,7 +63,20 @@ bruv_length_nsw <- readRDS("data/raw/length.RDS") %>%
 # relief <- readRDS("data/raw/relief_summarised.RDS") %>%
 #   filter(campaignid %in% c(campaign_list))
 
+# Read in campaigns to keep from Nathan ----
+campaigns_to_keep <- readr::read_csv("NSW Campaigns for Statewide BRUVs Reef Fish Dashboard.csv") %>%
+  dplyr::filter(remove %in% NA)
+
+bruv_metadata_nsw_filtered <- bruv_metadata_nsw %>%
+  semi_join(campaigns_to_keep)
+
+bruv_count_nsw_filtered <- bruv_count_nsw %>%
+  semi_join(bruv_metadata_nsw_filtered)
+
+bruv_length_nsw_filtered <- bruv_length_nsw %>%
+  semi_join(bruv_metadata_nsw_filtered)
+
 # Save data for analysis ----
-saveRDS(bruv_metadata_nsw, "data/raw/bruv_metadata_nsw.rds")
-saveRDS(bruv_count_nsw, "data/raw/bruv_count_nsw.rds")
-saveRDS(bruv_length_nsw, "data/raw/bruv_length_nsw.rds")
+saveRDS(bruv_metadata_nsw_filtered, "data/raw/bruv_metadata_nsw.rds")
+saveRDS(bruv_count_nsw_filtered, "data/raw/bruv_count_nsw.rds")
+saveRDS(bruv_length_nsw_filtered, "data/raw/bruv_length_nsw.rds")
