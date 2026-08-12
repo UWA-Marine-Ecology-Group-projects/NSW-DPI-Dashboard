@@ -68,7 +68,11 @@ campaigns_to_keep <- readr::read_csv("NSW Campaigns for Statewide BRUVs Reef Fis
   dplyr::filter(remove %in% NA)
 
 bruv_metadata_nsw_filtered <- bruv_metadata_nsw %>%
-  semi_join(campaigns_to_keep)
+  semi_join(campaigns_to_keep) %>%
+  dplyr::filter(!(campaignid %in% "2019_Greater.Sydney.Region_stereoBRUVs" & bioregion %in% "Batemans Shelf"))
+
+unique_bioregions_campaigns <- bruv_metadata_nsw_filtered %>%
+  distinct(campaignid, bioregion)
 
 bruv_count_nsw_filtered <- bruv_count_nsw %>%
   semi_join(bruv_metadata_nsw_filtered)
