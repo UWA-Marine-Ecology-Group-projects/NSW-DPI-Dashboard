@@ -205,6 +205,8 @@ length_mass_lbc <- bruv_length %>%
                 fb_b_ll = if_else(is.na(fb_b_ll), fb_genus_b_ll, fb_b_ll)) %>%
   dplyr::filter(!is.na(l50),
                 !is.na(length_mm)) %>%
+  dplyr::mutate(fb_b_ll = if_else(is.na(fb_b_ll), 1, fb_b_ll)) %>%
+  dplyr::mutate(fb_a_ll = if_else(is.na(fb_a_ll), 0, fb_a_ll)) %>%
   dplyr::mutate(adjlength = (((length_mm/10) * fb_b_ll) + fb_a_ll)) %>% 
   dplyr::mutate(mass_g = (adjlength ^ fb_b) * fb_a * count) %>%
   glimpse()
@@ -229,12 +231,73 @@ alt_samples <- length_mass_lbc %>%
   dplyr::rename(value = number) %>%
   dplyr::select(campaignid, sample, sample_url, metric, value) 
 
+lh <- CheckEM::australia_life_history
+
+length_for_size_biomass <- bruv_length %>%
+  left_join(CheckEM::australia_life_history) %>%
+  dplyr::left_join(genus_length) %>%
+  dplyr::mutate(fb_a = if_else(is.na(fb_a), fb_genus_a, fb_a),
+                fb_b = if_else(is.na(fb_b), fb_genus_b, fb_b),
+                fb_a_ll = if_else(is.na(fb_a_ll), fb_genus_a_ll, fb_a_ll),
+                fb_b_ll = if_else(is.na(fb_b_ll), fb_genus_b_ll, fb_b_ll)) %>%
+  dplyr::filter(!is.na(length_mm)) %>%
+  dplyr::mutate(fb_b_ll = if_else(is.na(fb_b_ll), 1, fb_b_ll)) %>%
+  dplyr::mutate(fb_a_ll = if_else(is.na(fb_a_ll), 0, fb_a_ll)) %>%
+  dplyr::select(sample_url, family, genus, species, length_mm, count, fb_a, fb_b, fb_a_ll, fb_b_ll) %>%
+  dplyr::mutate(adjlength_cm = (((length_mm/10) * fb_b_ll) + fb_a_ll)) %>% 
+  dplyr::mutate(mass_g = (adjlength_cm ^ fb_b) * fb_a * count) %>%
+  glimpse()
+
+b20_samples <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 200) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(biomass_kg = sum(mass_g, na.rm = T)/1000) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(biomass_kg = if_else(is.na(biomass_kg), 0, biomass_kg)) %>%
+  dplyr::mutate(metric = "b20") %>%
+  dplyr::rename(value = biomass_kg) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
+
+a20_samples <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 200) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(number = sum(count)) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(number = if_else(is.na(number), 0, number)) %>%
+  dplyr::mutate(metric = "a20") %>%
+  dplyr::rename(value = number) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
+
+b30_samples <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 300) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(biomass_kg = sum(mass_g, na.rm = T)/1000) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(biomass_kg = if_else(is.na(biomass_kg), 0, biomass_kg)) %>%
+  dplyr::mutate(metric = "b30") %>%
+  dplyr::rename(value = biomass_kg) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
+
+a30_samples <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 300) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(number = sum(count)) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(number = if_else(is.na(number), 0, number)) %>%
+  dplyr::mutate(metric = "a30") %>%
+  dplyr::rename(value = number) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
+
 # Combine all metrics ----
 metrics <- bind_rows(total_abundance_samples, 
                      species_richness_samples, 
                      cti_samples,
                      blt_samples,
-                     alt_samples) %>%
+                     alt_samples,
+                     b20_samples,
+                     a20_samples,
+                     b30_samples,
+                     a30_samples) %>%
   left_join(bioregions) %>%
   left_join(count_samples %>% 
               select(sample_url, sample, date_time, date, status)) %>%

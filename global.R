@@ -64,7 +64,11 @@ metric_defs <- c(
   total_abundance = "Total abundance",
   alt   = "Abundance of large teleosts",
   blt   = "Biomass of large teleosts (BLT)",
-  species = "Choose a species"
+  species = "Choose a species",
+  b20 = "Biomass greater than 20 cm",
+  b30 = "Biomass greater than 30 cm",
+  a20 = "Abundance greater than 20 cm",
+  a30 = "Abundance greater than 30 cm"
 )
 
 metric_y_lab <- list(
@@ -73,7 +77,11 @@ metric_y_lab <- list(
   cti           = "Community temperature index (°C)",
   alt = "Average no. individuals",
   blt   = "Biomass (kg)",
-  species = "Average no. individuals"
+  species = "Average no. individuals",
+  b20 = "Biomass (kg)",
+  b30 = "Biomass (kg)",
+  a20 = "Average no. individuals",
+  a30 = "Average no. individuals"
 )
 
 # Deploy app ----
