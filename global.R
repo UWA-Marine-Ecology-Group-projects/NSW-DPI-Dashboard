@@ -9,6 +9,7 @@ library(sf)
 library(shinycssloaders)
 library(scales)
 library(tidytext)
+library(plotly)
 
 source("R/helpers.R")          # defines filter_by_park(), ensure_sf_ll(), base_map(), etc.
 source("R/mod_park_summary.R") # defines mod_park_summary_ui/server (contains session$onFlushed INSIDE)

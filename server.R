@@ -77,6 +77,27 @@ metric_plotOutput <- function(prefix, metric_id, which, height = 600, spinner_ty
   )
 }
 
+metric_plotlyOutput <- function(
+    prefix,
+    metric_id,
+    which,
+    height = 600,
+    spinner_type = 6
+) {
+  
+  withSpinner(
+    plotly::plotlyOutput(
+      metric_plot_id(prefix, metric_id, which),
+      height = height
+    ),
+    color = getOption(
+      "spinner.color",
+      default = "#0D576E"
+    ),
+    type = spinner_type
+  )
+}
+
 metric_leafletOutput <- function(prefix, metric_id, which = "map", height = 500, spinner_type = 6) {
   div(
     class = "map-full-wrapper",
@@ -210,7 +231,28 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
       )
     },
     
-    if (metric_id %in% c("cti", "species_richness")) {
+    # if (metric_id %in% c("cti", "species_richness")) {
+    #   card(
+    #     full_screen = TRUE,
+    #     card_header("Diagnostic plots"),
+    #     
+    #     layout_columns(
+    #       col_widths = c(12),
+    #       
+    #       div(
+    #         metric_plotOutput(
+    #           prefix = prefix,
+    #           metric_id = data_id,
+    #           which = "diagnostic",
+    #           height = 700
+    #         )
+    #       )
+    #     )
+    #   )
+    # }
+    
+    if (metric_id == "cti") {
+      
       card(
         full_screen = TRUE,
         card_header("Diagnostic plots"),
@@ -223,11 +265,34 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               prefix = prefix,
               metric_id = data_id,
               which = "diagnostic",
+              height = 900
+            )
+          )
+        )
+      )
+      
+    },
+    
+    if (metric_id == "species_richness") {
+      
+      card(
+        full_screen = TRUE,
+        card_header("Species accumulation"),
+        
+        layout_columns(
+          col_widths = c(12),
+          
+          div(
+            metric_plotlyOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "diagnostic",
               height = 700
             )
           )
         )
       )
+      
     }
   )
 }
@@ -1181,6 +1246,140 @@ server <- function(input, output, session) {
   })
   
   # SPECIES RICHNESS DIAGNOSTIC PLOTS ----
+  # 
+  # make_species_accumulation_plot <- function(
+  #   bioregion_name,
+  #   title_lab = NULL
+  # ) {
+  #   
+  #   req(bioregion_name)
+  #   
+  #   df <- nsw_bruv_data$species_accumulation %>%
+  #     dplyr::filter(
+  #       bioregion == bioregion_name
+  #     )
+  #   
+  #   validate(
+  #     need(
+  #       nrow(df) > 0,
+  #       paste(
+  #         "No species accumulation data available for",
+  #         bioregion_name
+  #       )
+  #     )
+  #   )
+  #   
+  #   # Put years in chronological order
+  #   year_levels <- sort(
+  #     unique(as.character(df$year))
+  #   )
+  #   
+  #   df <- df %>%
+  #     dplyr::mutate(
+  #       year = factor(
+  #         as.character(year),
+  #         levels = year_levels
+  #       )
+  #     )
+  #   
+  #   # Create enough line types for however many years occur
+  #   line_types <- rep(
+  #     c(
+  #       "solid",
+  #       "22",
+  #       "42",
+  #       "13",
+  #       "44",
+  #       "F1"
+  #     ),
+  #     length.out = length(year_levels)
+  #   )
+  #   
+  #   names(line_types) <- year_levels
+  #   
+  #   
+  #   ggplot(
+  #     df,
+  #     aes(
+  #       x = deployments,
+  #       y = richness,
+  #       colour = status,
+  #       fill = status,
+  #       linetype = year,
+  #       group = interaction(status, year)
+  #     )
+  #   ) +
+  #     
+  #     geom_ribbon(
+  #       aes(
+  #         ymin = lower,
+  #         ymax = upper
+  #       ),
+  #       alpha = 0.15,
+  #       colour = NA
+  #     ) +
+  #     
+  #     geom_line(
+  #       linewidth = 1.2
+  #     ) +
+  #     
+  #     scale_colour_manual(
+  #       name = "Status",
+  #       values = c(
+  #         "Fished"  = "#A9173A",
+  #         "No-Take" = "#67C7BB"
+  #       )
+  #     ) +
+  #     
+  #     scale_fill_manual(
+  #       name = "Status",
+  #       values = c(
+  #         "Fished"  = "#A9173A",
+  #         "No-Take" = "#67C7BB"
+  #       )
+  #     ) +
+  #     
+  #     scale_linetype_manual(
+  #       name = "Year",
+  #       values = line_types
+  #     ) +
+  #     
+  #     labs(
+  #       x = "Number of BRUV deployments",
+  #       y = "Species richness",
+  #       title = title_lab
+  #     ) +
+  #     
+  #     theme_minimal(
+  #       base_size = 16
+  #     ) +
+  #     
+  #     theme(
+  #       panel.grid.minor = element_blank(),
+  #       legend.position = "right"
+  #     )
+  # }
+  
+  
+  
+  # # Output -----
+  # output[[
+  #   metric_plot_id(
+  #     "bioregion",
+  #     "species_richness",
+  #     "diagnostic"
+  #   )
+  # ]] <- renderPlot({
+  #   
+  #   req(input$bioregion)
+  #   
+  #   make_species_accumulation_plot(
+  #     bioregion_name = input$bioregion
+  #   )
+  #   
+  # })
+  
+  # SPECIES RICHNESS DIAGNOSTIC PLOTS ----
   
   make_species_accumulation_plot <- function(
     bioregion_name,
@@ -1189,10 +1388,29 @@ server <- function(input, output, session) {
     
     req(bioregion_name)
     
+    
+    # -----------------------------
+    # Filter data
+    # -----------------------------
+    
     df <- nsw_bruv_data$species_accumulation %>%
       dplyr::filter(
         bioregion == bioregion_name
+      ) %>%
+      dplyr::mutate(
+        year = as.character(year),
+        
+        # Protect against NA SD values
+        sd = tidyr::replace_na(sd, 0),
+        
+        lower = pmax(
+          richness - sd,
+          0
+        ),
+        
+        upper = richness + sd
       )
+    
     
     validate(
       need(
@@ -1204,95 +1422,536 @@ server <- function(input, output, session) {
       )
     )
     
-    # Put years in chronological order
-    year_levels <- sort(
-      unique(as.character(df$year))
+    
+    # -----------------------------
+    # Status colours
+    # -----------------------------
+    
+    status_colours <- c(
+      "Fished"  = "#A9173A",
+      "No-Take" = "#67C7BB"
     )
     
-    df <- df %>%
+    
+    # Give any unexpected status a neutral colour
+    unknown_status <- setdiff(
+      unique(df$status),
+      names(status_colours)
+    )
+    
+    if (length(unknown_status) > 0) {
+      
+      status_colours <- c(
+        status_colours,
+        stats::setNames(
+          rep(
+            "#6C757D",
+            length(unknown_status)
+          ),
+          unknown_status
+        )
+      )
+    }
+    
+    
+    # -----------------------------
+    # Year line types
+    # -----------------------------
+    
+    year_levels <- sort(
+      unique(df$year)
+    )
+    
+    
+    plotly_dash_types <- c(
+      "solid",
+      "dash",
+      "dot",
+      "dashdot",
+      "longdash",
+      "longdashdot"
+    )
+    
+    
+    year_dashes <- stats::setNames(
+      rep(
+        plotly_dash_types,
+        length.out = length(year_levels)
+      ),
+      year_levels
+    )
+    
+    
+    # -----------------------------
+    # Helper: hex -> rgba
+    #
+    # Used to make transparent
+    # uncertainty ribbons
+    # -----------------------------
+    
+    hex_to_rgba <- function(
+    hex_colour,
+    alpha = 0.15
+    ) {
+      
+      rgb <- grDevices::col2rgb(
+        hex_colour
+      )
+      
+      sprintf(
+        "rgba(%s,%s,%s,%.2f)",
+        rgb[1],
+        rgb[2],
+        rgb[3],
+        alpha
+      )
+    }
+    
+    
+    # -----------------------------
+    # Order groups
+    # -----------------------------
+    
+    status_order <- c(
+      intersect(
+        c("Fished", "No-Take"),
+        unique(df$status)
+      ),
+      setdiff(
+        sort(unique(df$status)),
+        c("Fished", "No-Take")
+      )
+    )
+    
+    
+    curve_keys <- df %>%
+      dplyr::distinct(
+        status,
+        year
+      ) %>%
       dplyr::mutate(
+        status = factor(
+          status,
+          levels = status_order
+        ),
         year = factor(
-          as.character(year),
+          year,
           levels = year_levels
         )
+      ) %>%
+      dplyr::arrange(
+        status,
+        year
       )
     
-    # Create enough line types for however many years occur
-    line_types <- rep(
-      c(
-        "solid",
-        "22",
-        "42",
-        "13",
-        "44",
-        "F1"
-      ),
-      length.out = length(year_levels)
+    
+    # -----------------------------
+    # Start Plotly figure
+    # -----------------------------
+    
+    fig <- plotly::plot_ly()
+    
+    
+    # -----------------------------
+    # Add one ribbon + one line
+    # for every status/year
+    # -----------------------------
+    
+    for (i in seq_len(nrow(curve_keys))) {
+      
+      status_i <- as.character(
+        curve_keys$status[i]
+      )
+      
+      year_i <- as.character(
+        curve_keys$year[i]
+      )
+      
+      
+      curve_df <- df %>%
+        dplyr::filter(
+          status == status_i,
+          year == year_i
+        ) %>%
+        dplyr::arrange(
+          deployments
+        )
+      
+      
+      # Unique ID used to link the line
+      # and its uncertainty ribbon
+      curve_id <- paste(
+        status_i,
+        year_i,
+        sep = "__"
+      )
+      
+      
+      colour_i <- status_colours[[status_i]]
+      dash_i <- year_dashes[[year_i]]
+      
+      
+      legend_name <- paste0(
+        year_i,
+        " \u2014 ",
+        status_i
+      )
+      
+      
+      # -------------------------
+      # Hover text
+      # -------------------------
+      
+      curve_df <- curve_df %>%
+        dplyr::mutate(
+          
+          hover_text = paste0(
+            "<b>", year_i, " \u2014 ", status_i, "</b>",
+            "<br>",
+            "BRUV deployments: ",
+            deployments,
+            "<br>",
+            "Species richness: ",
+            round(richness, 1),
+            "<br>",
+            "SD: ",
+            round(sd, 1)
+          )
+        )
+      
+      
+      # -------------------------
+      # Uncertainty ribbon
+      # -------------------------
+      
+      ribbon_x <- c(
+        curve_df$deployments,
+        rev(curve_df$deployments)
+      )
+      
+      
+      ribbon_y <- c(
+        curve_df$upper,
+        rev(curve_df$lower)
+      )
+      
+      
+      fig <- fig %>%
+        plotly::add_trace(
+          
+          x = ribbon_x,
+          y = ribbon_y,
+          
+          type = "scatter",
+          mode = "lines",
+          
+          fill = "toself",
+          
+          fillcolor = hex_to_rgba(
+            colour_i,
+            alpha = 0.15
+          ),
+          
+          line = list(
+            color = "rgba(0,0,0,0)",
+            width = 0
+          ),
+          
+          hoverinfo = "skip",
+          
+          showlegend = FALSE,
+          
+          legendgroup = curve_id,
+          
+          meta = "ribbon"
+        )
+      
+      
+      # -------------------------
+      # Accumulation line
+      # -------------------------
+      
+      fig <- fig %>%
+        plotly::add_trace(
+          
+          x = curve_df$deployments,
+          y = curve_df$richness,
+          
+          type = "scatter",
+          mode = "lines",
+          
+          name = legend_name,
+          
+          legendgroup = curve_id,
+          
+          line = list(
+            color = colour_i,
+            dash = dash_i,
+            width = 3
+          ),
+          
+          text = curve_df$hover_text,
+          
+          hovertemplate = paste0(
+            "%{text}",
+            "<extra></extra>"
+          ),
+          
+          showlegend = TRUE,
+          
+          meta = "line"
+        )
+    }
+    
+    
+    # -----------------------------
+    # Plot layout
+    # -----------------------------
+    
+    fig <- fig %>%
+      plotly::layout(
+        
+        title = list(
+          text = if (
+            is.null(title_lab)
+          ) {
+            ""
+          } else {
+            title_lab
+          },
+          
+          x = 0.02,
+          xanchor = "left"
+        ),
+        
+        
+        xaxis = list(
+          title = list(
+            text = "Number of BRUV deployments"
+          ),
+          
+          rangemode = "tozero",
+          
+          showgrid = TRUE,
+          
+          zeroline = FALSE
+        ),
+        
+        
+        yaxis = list(
+          title = list(
+            text = "Species richness"
+          ),
+          
+          rangemode = "tozero",
+          
+          showgrid = TRUE,
+          
+          zeroline = FALSE
+        ),
+        
+        
+        legend = list(
+          
+          title = list(
+            text = "<b>Year \u2014 Status</b>"
+          ),
+          
+          orientation = "v",
+          
+          # Single click:
+          # hide/show this curve
+          itemclick = "toggle",
+          
+          # Double click:
+          # isolate this curve
+          itemdoubleclick = "toggleothers",
+          
+          # Makes ribbon + line respond together
+          groupclick = "togglegroup"
+        ),
+        
+        
+        hovermode = "closest",
+        
+        
+        hoverlabel = list(
+          align = "left"
+        ),
+        
+        
+        font = list(
+          family = "Barlow"
+        ),
+        
+        
+        margin = list(
+          l = 80,
+          r = 160,
+          b = 70,
+          t = 40
+        )
+      )
+    
+    
+    # -----------------------------
+    # Clean Plotly toolbar
+    # -----------------------------
+    
+    fig <- fig %>%
+      plotly::config(
+        
+        displaylogo = FALSE,
+        
+        responsive = TRUE,
+        
+        scrollZoom = FALSE,
+        
+        modeBarButtonsToRemove = c(
+          "select2d",
+          "lasso2d",
+          "toggleSpikelines"
+        )
+      )
+    
+    
+    # -----------------------------
+    # Hover highlighting
+    #
+    # Hover a line:
+    #   - selected curve gets thicker
+    #   - selected ribbon remains visible
+    #   - all other curves dim
+    #
+    # Move away:
+    #   - reset opacity and line width
+    # -----------------------------
+    
+    fig <- htmlwidgets::onRender(
+      fig,
+      
+      "
+    function(el, x) {
+
+      function focusCurve(group) {
+
+        el.data.forEach(function(trace, i) {
+
+          var sameGroup =
+            trace.legendgroup === group;
+
+          var newOpacity =
+            sameGroup ? 1 : 0.12;
+
+
+          Plotly.restyle(
+            el,
+            {
+              opacity: newOpacity
+            },
+            [i]
+          );
+
+
+          if (trace.meta === 'line') {
+
+            Plotly.restyle(
+              el,
+              {
+                'line.width':
+                  sameGroup ? 5 : 2
+              },
+              [i]
+            );
+
+          }
+
+        });
+
+      }
+
+
+      function resetCurves() {
+
+        el.data.forEach(function(trace, i) {
+
+          Plotly.restyle(
+            el,
+            {
+              opacity: 1
+            },
+            [i]
+          );
+
+
+          if (trace.meta === 'line') {
+
+            Plotly.restyle(
+              el,
+              {
+                'line.width': 3
+              },
+              [i]
+            );
+
+          }
+
+        });
+
+      }
+
+
+      el.on(
+        'plotly_hover',
+        function(eventData) {
+
+          if (
+            !eventData.points ||
+            !eventData.points.length
+          ) {
+            return;
+          }
+
+
+          var curveNumber =
+            eventData.points[0].curveNumber;
+
+
+          var trace =
+            el.data[curveNumber];
+
+
+          // Only trigger when hovering
+          // an accumulation line, not
+          // the uncertainty ribbon
+          if (trace.meta !== 'line') {
+            return;
+          }
+
+
+          focusCurve(
+            trace.legendgroup
+          );
+
+        }
+      );
+
+
+      el.on(
+        'plotly_unhover',
+        function() {
+
+          resetCurves();
+
+        }
+      );
+
+    }
+    "
     )
     
-    names(line_types) <- year_levels
     
-    
-    ggplot(
-      df,
-      aes(
-        x = deployments,
-        y = richness,
-        colour = status,
-        fill = status,
-        linetype = year,
-        group = interaction(status, year)
-      )
-    ) +
-      
-      geom_ribbon(
-        aes(
-          ymin = lower,
-          ymax = upper
-        ),
-        alpha = 0.15,
-        colour = NA
-      ) +
-      
-      geom_line(
-        linewidth = 1.2
-      ) +
-      
-      scale_colour_manual(
-        name = "Status",
-        values = c(
-          "Fished"  = "#A9173A",
-          "No-Take" = "#67C7BB"
-        )
-      ) +
-      
-      scale_fill_manual(
-        name = "Status",
-        values = c(
-          "Fished"  = "#A9173A",
-          "No-Take" = "#67C7BB"
-        )
-      ) +
-      
-      scale_linetype_manual(
-        name = "Year",
-        values = line_types
-      ) +
-      
-      labs(
-        x = "Number of BRUV deployments",
-        y = "Species richness",
-        title = title_lab
-      ) +
-      
-      theme_minimal(
-        base_size = 16
-      ) +
-      
-      theme(
-        panel.grid.minor = element_blank(),
-        legend.position = "right"
-      )
+    fig
   }
   
   output[[
@@ -1301,7 +1960,7 @@ server <- function(input, output, session) {
       "species_richness",
       "diagnostic"
     )
-  ]] <- renderPlot({
+  ]] <- plotly::renderPlotly({
     
     req(input$bioregion)
     
