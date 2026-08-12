@@ -165,17 +165,80 @@ distinct_species <- samples_missing_cti %>% distinct(family, genus, species)
 # TODO # 13 samples missing fish - ask Tim what to do for samples that did not observe any fish? Todd and I spoke about it and I think that I remove them.
 
 ## BLT ----
-# TODO add
+large_bodied_carnivores <- CheckEM::australia_life_history %>%
+  dplyr::filter(fb_trophic_level > 2.8) %>%
+  dplyr::filter(length_max_cm > 40) %>%
+  dplyr::filter(class %in% "Actinopterygii") %>%
+  dplyr::filter(!order %in% c("Anguilliformes", "Ophidiiformes", "Notacanthiformes","Syngnathiformes", 
+                              "Synbranchiformes", "Stomiiformes", "Siluriformes", "Saccopharyngiformes", "Osmeriformes", 
+                              "Osteoglossiformes", "Lophiiformes", "Lampriformes", "Beloniformes")) %>%
+  # left_join(maturity_mean) %>%
+  dplyr::mutate(fb_length_at_maturity_mm = fb_length_at_maturity_cm * 10) %>%
+  dplyr::mutate(l50 = fb_length_at_maturity_mm) %>%
+  dplyr::filter(!is.na(l50)) %>%
+  dplyr::select(family, genus, species, l50, fb_a, fb_b, fb_a_ll, fb_b_ll) %>% #, wa_l50
+  glimpse()
+
+species_count <- bruv_count %>%
+  dplyr::group_by(family, genus, species) %>%
+  dplyr::summarise(total_count = sum(count))
+
+nsw_lbc <- semi_join(large_bodied_carnivores, bruv_count) %>%
+  left_join(species_count)
+# 69 species in NSW data that have trophic level over 2.8 and max length above 400 mm
+# only 20 of them have a size of maturity
+
+genus_length <- CheckEM::australia_life_history %>%
+  dplyr::group_by(family, genus) %>%
+  summarise(fb_genus_a = mean(fb_a, na.rm = T),
+            fb_genus_b = mean(fb_b, na.rm = T),
+            fb_genus_a_ll = mean(fb_a_ll, na.rm = T),
+            fb_genus_b_ll = mean(fb_b_ll, na.rm = T)) %>%
+  glimpse()
+
+length_mass_lbc <- bruv_length %>%
+  left_join(large_bodied_carnivores) %>%
+  dplyr::left_join(genus_length) %>%
+  dplyr::mutate(fb_a = if_else(is.na(fb_a), fb_genus_a, fb_a),
+                fb_b = if_else(is.na(fb_b), fb_genus_b, fb_b),
+                fb_a_ll = if_else(is.na(fb_a_ll), fb_genus_a_ll, fb_a_ll),
+                fb_b_ll = if_else(is.na(fb_b_ll), fb_genus_b_ll, fb_b_ll)) %>%
+  dplyr::filter(!is.na(l50),
+                !is.na(length_mm)) %>%
+  dplyr::mutate(adjlength = (((length_mm/10) * fb_b_ll) + fb_a_ll)) %>% 
+  dplyr::mutate(mass_g = (adjlength ^ fb_b) * fb_a * count) %>%
+  glimpse()
+
+blt_samples <- length_mass_lbc %>%
+  dplyr::filter(length_mm > l50) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(biomass_kg = sum(mass_g, na.rm = T)/1000) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(biomass_kg = if_else(is.na(biomass_kg), 0, biomass_kg)) %>%
+  dplyr::mutate(metric = "blt") %>%
+  dplyr::rename(value = biomass_kg) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
+
+alt_samples <- length_mass_lbc %>%
+  dplyr::filter(length_mm > l50) %>% # FOR BLT > Length of maturity
+  dplyr::group_by(sample_url) %>%
+  dplyr::summarise(number = sum(count)) %>%
+  dplyr::right_join(length_samples) %>%
+  dplyr::mutate(number = if_else(is.na(number), 0, number)) %>%
+  dplyr::mutate(metric = "alt") %>%
+  dplyr::rename(value = number) %>%
+  dplyr::select(campaignid, sample, sample_url, metric, value) 
 
 # Combine all metrics ----
 metrics <- bind_rows(total_abundance_samples, 
                      species_richness_samples, 
-                     cti_samples) %>%
+                     cti_samples,
+                     blt_samples,
+                     alt_samples) %>%
   left_join(bioregions) %>%
   left_join(count_samples %>% 
               select(sample_url, sample, date_time, date, status)) %>%
   left_join(campaign_lookup)
-
 
 ## Indicator Species and most abundant species -----
 # TODO start with top 50 most abundant
@@ -432,7 +495,7 @@ sac_species_counts <- bruv_count %>%
     !is.na(species)
   ) %>%
   dplyr::mutate(
-    scientific_name = paste(genus, species)
+    scientific_name = paste(family, genus, species)
   ) %>%
   dplyr::group_by(
     sample_url,
@@ -552,6 +615,18 @@ species_accumulation <- sac_wide %>%
     upper = richness + tidyr::replace_na(sd, 0)
   ) %>%
   glimpse()
+
+maturity_mean <- maturity %>%
+  dplyr::group_by(family, genus, species, sex) %>%
+  dplyr::slice(which.min(l50_mm)) %>%
+  ungroup() %>%
+  dplyr::group_by(family, genus, species) %>%
+  dplyr::summarise(wa_l50 = mean(l50_mm)) %>%
+  ungroup() %>%
+  glimpse()
+
+
+
 
 # Combined data
 nsw_bruv_data <- structure(
