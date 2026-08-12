@@ -5,6 +5,7 @@ library(stringr)
 library(tidyr)
 library(here)
 library(sf)
+library(vegan)
 
 # TODO - should Pseudocaranx georgianus be spp in everything?
 
@@ -398,6 +399,160 @@ top_50_abundance <- complete_bruv_count %>%
   left_join(common_names) %>%
   mutate(display_name = paste0(genus, " ", species, " (", australian_common_name, ")"))
 
+# Species accumulation curves ----
+
+# Metadata for successful BRUV deployments
+# st_drop_geometry() keeps this much lighter for the SAC calculation
+sac_sample_info <- count_samples %>%
+  sf::st_drop_geometry() %>%
+  dplyr::select(
+    sample_url,
+    sample,
+    campaignid,
+    bioregion,
+    status,
+    year
+  ) %>%
+  dplyr::filter(
+    !is.na(bioregion),
+    !is.na(status),
+    !is.na(year)
+  ) %>%
+  dplyr::distinct()
+
+
+# Summarise fish observations to one row per deployment/species
+sac_species_counts <- bruv_count %>%
+  dplyr::semi_join(
+    sac_sample_info,
+    by = "sample_url"
+  ) %>%
+  dplyr::filter(
+    !is.na(genus),
+    !is.na(species)
+  ) %>%
+  dplyr::mutate(
+    scientific_name = paste(genus, species)
+  ) %>%
+  dplyr::group_by(
+    sample_url,
+    scientific_name
+  ) %>%
+  dplyr::summarise(
+    count = sum(count, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+# Convert to deployment x species matrix
+sac_species_wide <- sac_species_counts %>%
+  tidyr::pivot_wider(
+    names_from = scientific_name,
+    values_from = count,
+    values_fill = 0
+  )
+
+
+# Keep a record of which columns are species columns
+species_cols <- setdiff(
+  names(sac_species_wide),
+  "sample_url"
+)
+
+
+# Join back to ALL successful deployments.
+#
+# This is important because a successful BRUV deployment with zero fish
+# should still contribute one deployment to the accumulation curve.
+sac_wide <- sac_sample_info %>%
+  dplyr::left_join(
+    sac_species_wide,
+    by = "sample_url"
+  ) %>%
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::all_of(species_cols),
+      ~ tidyr::replace_na(.x, 0)
+    )
+  ) %>%
+  dplyr::arrange(
+    bioregion,
+    year,
+    status,
+    sample_url
+  )
+
+
+# Function to calculate a sample-based species accumulation curve
+make_species_accumulation <- function(df, species_cols) {
+  
+  species_mat <- df %>%
+    dplyr::select(
+      dplyr::all_of(species_cols)
+    ) %>%
+    as.data.frame()
+  
+  # No curve can be calculated if there are no deployments/species
+  if (nrow(species_mat) == 0 || ncol(species_mat) == 0) {
+    return(
+      tibble::tibble(
+        deployments = numeric(),
+        richness = numeric(),
+        sd = numeric()
+      )
+    )
+  }
+  
+  # Convert abundance to presence / absence
+  species_pa <- vegan::decostand(
+    species_mat,
+    method = "pa"
+  )
+  
+  # Random-order sample accumulation
+  sac <- vegan::specaccum(
+    species_pa,
+    method = "random",
+    permutations = 999
+  )
+  
+  tibble::tibble(
+    deployments = sac$sites,
+    richness = sac$richness,
+    sd = sac$sd
+  )
+}
+
+
+# Set seed so curves are reproducible whenever the data file is rebuilt
+set.seed(123)
+
+
+# Calculate one SAC for every:
+# bioregion x year x protection status
+species_accumulation <- sac_wide %>%
+  dplyr::group_by(
+    bioregion,
+    year,
+    status
+  ) %>%
+  dplyr::group_modify(
+    ~ make_species_accumulation(
+      df = .x,
+      species_cols = species_cols
+    )
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(
+    year = as.character(year),
+    lower = pmax(
+      richness - tidyr::replace_na(sd, 0),
+      0
+    ),
+    upper = richness + tidyr::replace_na(sd, 0)
+  ) %>%
+  glimpse()
+
 # Combined data
 nsw_bruv_data <- structure(
   list(
@@ -409,6 +564,8 @@ nsw_bruv_data <- structure(
     top_50_most_abundant_species_bioregion_status_year = top_50_most_abundant_species_bioregion_status_year,
     metrics = metrics,
     
+    # Diagnostic data
+    species_accumulation = species_accumulation,
     cti_top_10 = cti_top_10, 
     
     # TODO add shapefiles here

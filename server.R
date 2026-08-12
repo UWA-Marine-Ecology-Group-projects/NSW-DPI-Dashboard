@@ -210,7 +210,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
       )
     },
     
-    if (metric_id == "cti") {
+    if (metric_id %in% c("cti", "species_richness")) {
       card(
         full_screen = TRUE,
         card_header("Diagnostic plots"),
@@ -223,7 +223,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               prefix = prefix,
               metric_id = data_id,
               which = "diagnostic",
-              height = 900
+              height = 700
             )
           )
         )
@@ -1178,6 +1178,137 @@ server <- function(input, output, session) {
       # number_species = input$bioregion_number_species,
       # title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
     )
+  })
+  
+  # SPECIES RICHNESS DIAGNOSTIC PLOTS ----
+  
+  make_species_accumulation_plot <- function(
+    bioregion_name,
+    title_lab = NULL
+  ) {
+    
+    req(bioregion_name)
+    
+    df <- nsw_bruv_data$species_accumulation %>%
+      dplyr::filter(
+        bioregion == bioregion_name
+      )
+    
+    validate(
+      need(
+        nrow(df) > 0,
+        paste(
+          "No species accumulation data available for",
+          bioregion_name
+        )
+      )
+    )
+    
+    # Put years in chronological order
+    year_levels <- sort(
+      unique(as.character(df$year))
+    )
+    
+    df <- df %>%
+      dplyr::mutate(
+        year = factor(
+          as.character(year),
+          levels = year_levels
+        )
+      )
+    
+    # Create enough line types for however many years occur
+    line_types <- rep(
+      c(
+        "solid",
+        "22",
+        "42",
+        "13",
+        "44",
+        "F1"
+      ),
+      length.out = length(year_levels)
+    )
+    
+    names(line_types) <- year_levels
+    
+    
+    ggplot(
+      df,
+      aes(
+        x = deployments,
+        y = richness,
+        colour = status,
+        fill = status,
+        linetype = year,
+        group = interaction(status, year)
+      )
+    ) +
+      
+      geom_ribbon(
+        aes(
+          ymin = lower,
+          ymax = upper
+        ),
+        alpha = 0.15,
+        colour = NA
+      ) +
+      
+      geom_line(
+        linewidth = 1.2
+      ) +
+      
+      scale_colour_manual(
+        name = "Status",
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        )
+      ) +
+      
+      scale_fill_manual(
+        name = "Status",
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        )
+      ) +
+      
+      scale_linetype_manual(
+        name = "Year",
+        values = line_types
+      ) +
+      
+      labs(
+        x = "Number of BRUV deployments",
+        y = "Species richness",
+        title = title_lab
+      ) +
+      
+      theme_minimal(
+        base_size = 16
+      ) +
+      
+      theme(
+        panel.grid.minor = element_blank(),
+        legend.position = "right"
+      )
+  }
+  
+  output[[
+    metric_plot_id(
+      "bioregion",
+      "species_richness",
+      "diagnostic"
+    )
+  ]] <- renderPlot({
+    
+    req(input$bioregion)
+    
+    make_species_accumulation_plot(
+      bioregion_name = input$bioregion
+    )
+    
   })
   
   # SPECIES SPEFICIC DIAGNOSTIC PLOTS ----
