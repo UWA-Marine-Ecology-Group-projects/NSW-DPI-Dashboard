@@ -7,6 +7,9 @@ library(here)
 library(sf)
 library(vegan)
 
+common_names <- CheckEM::australia_life_history %>%
+  select(family, genus, species, australian_common_name)
+
 # TODO - should Pseudocaranx georgianus be spp in everything?
 
 # Read in data ----
@@ -492,9 +495,6 @@ top_50_most_abundant_species_bioregion_status <- complete_bruv_count %>%
   dplyr::mutate(by_status = TRUE) %>%
   glimpse
 
-common_names <- CheckEM::australia_life_history %>%
-  select(family, genus, species, australian_common_name)
-
 top_50_most_abundant_species_bioregion_status_year <- complete_bruv_count %>%
   left_join(count_samples) %>%
   dplyr::group_by(bioregion, status, year, family, genus, species) %>% 
@@ -807,11 +807,31 @@ maturity_mean <- maturity %>%
   glimpse()
 
 # Species length data for dashboard ----
+# Species length data for dashboard ----
 species_length_data <- bruv_length %>%
-  dplyr::filter(!is.na(length_mm)) %>%
+  
+  # Add year
+  dplyr::left_join(
+    bruv_metadata %>%
+      sf::st_drop_geometry() %>%
+      dplyr::select(
+        sample_url,
+        year
+      ) %>%
+      dplyr::distinct(),
+    by = "sample_url"
+  ) %>%
+  
+  # Keep measured fish only
+  dplyr::filter(
+    !is.na(length_mm),
+    !is.na(year)
+  ) %>%
+  
   dplyr::select(
     sample_url,
     bioregion,
+    year,
     status,
     family,
     genus,
@@ -819,20 +839,34 @@ species_length_data <- bruv_length %>%
     length_mm,
     count
   ) %>%
+  
+  # Add common name
   dplyr::left_join(
     common_names,
-    by = c("family", "genus", "species")
-  ) %>%
-  dplyr::mutate(
-    display_name = paste0(
-      genus,
-      " ",
-      species,
-      " (",
-      australian_common_name,
-      ")"
+    by = c(
+      "family",
+      "genus",
+      "species"
     )
-  )
+  ) %>%
+  
+  # Same species label used elsewhere in dashboard
+  dplyr::mutate(
+    display_name = dplyr::if_else(
+      is.na(australian_common_name),
+      paste(genus, species),
+      paste0(
+        genus,
+        " ",
+        species,
+        " (",
+        australian_common_name,
+        ")"
+      )
+    )
+  ) %>%
+  
+  glimpse()
 
 
 # Combined data
