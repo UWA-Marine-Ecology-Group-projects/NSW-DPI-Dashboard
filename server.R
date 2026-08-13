@@ -139,18 +139,39 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
         ),
         
         layout_columns(
-          col_widths = c(6,6),
+          col_widths = c(6, 6),
+          
+          card(
+            full_screen = TRUE,
+            card_header("Temporal"),
+            metric_plotOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "year",
+              height = 600
+            )
+          ),
+          
+          card(
+            full_screen = TRUE,
+            card_header("Spatial"),
+            metric_leafletOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "map",
+              height = 500
+            )
+          )
+        ),
+        
+        card(
+          full_screen = TRUE,
+          card_header("Length distribution"),
+          
           metric_plotOutput(
             prefix = prefix,
             metric_id = data_id,
-            which = "year",
-            height = 600
-          ),
-          
-          metric_leafletOutput(
-            prefix = prefix,
-            metric_id = data_id,
-            which = "map",
+            which = "length",
             height = 500
           )
         )

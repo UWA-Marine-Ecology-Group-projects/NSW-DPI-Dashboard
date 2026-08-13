@@ -400,7 +400,11 @@ top_10_b30 <- fish_bigger_300_status %>%
 
 # Diagnostic plots for a20, b20, a30 and b30 ----
 top_10_diagnostic_a_and_b <- bind_rows(top_10_a20, top_10_b20, top_10_a30, top_10_b30) %>%
-  dplyr::select(bioregion, year, status, scientific, family, genus, species, metric, value, se)
+  dplyr::select(bioregion, year, status, scientific, family, genus, species, metric, value, se) %>%
+  dplyr::left_join(
+    common_names,
+    by = c("family", "genus", "species")
+  ) %>% glimpse()
 
 # Combine all metrics ----
 metrics <- bind_rows(total_abundance_samples, 
@@ -802,7 +806,33 @@ maturity_mean <- maturity %>%
   ungroup() %>%
   glimpse()
 
-
+# Species length data for dashboard ----
+species_length_data <- bruv_length %>%
+  dplyr::filter(!is.na(length_mm)) %>%
+  dplyr::select(
+    sample_url,
+    bioregion,
+    status,
+    family,
+    genus,
+    species,
+    length_mm,
+    count
+  ) %>%
+  dplyr::left_join(
+    common_names,
+    by = c("family", "genus", "species")
+  ) %>%
+  dplyr::mutate(
+    display_name = paste0(
+      genus,
+      " ",
+      species,
+      " (",
+      australian_common_name,
+      ")"
+    )
+  )
 
 
 # Combined data
@@ -824,7 +854,9 @@ nsw_bruv_data <- structure(
     # TODO add shapefiles here
     bioregions_shp = bioregions_shp,
     
-    top_50_abundance = top_50_abundance
+    top_50_abundance = top_50_abundance,
+    
+    species_length_data = species_length_data
     
   ), class = "data")
 
