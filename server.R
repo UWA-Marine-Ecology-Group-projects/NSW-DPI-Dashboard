@@ -293,6 +293,21 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
         )
       )
       
+    },
+    
+    if (metric_id %in% c("a20", "b20", "a30", "b30")) {
+      
+      card(
+        full_screen = TRUE,
+        card_header("Top 10 species by year"),
+        
+        metric_plotOutput(
+          prefix = prefix,
+          metric_id = data_id,
+          which = "diagnostic",
+          height = 900
+        )
+      )
     }
   )
 }
@@ -1158,13 +1173,10 @@ server <- function(input, output, session) {
   # CTI DIAGNOSTIC PLOTS ----
   make_top_cti_year_plot <- function(
     bioregion_name,
-    # selected_year,
-    # number_species = 10,
     title_lab = NULL
   ) {
     
     req(bioregion_name)
-    
     message(bioregion_name)
     message("CTI plots")
     
@@ -1238,10 +1250,91 @@ server <- function(input, output, session) {
     req(input$bioregion)
     
     make_top_cti_year_plot(
-      bioregion_name = input$bioregion#,
-      # selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
-      # number_species = input$bioregion_number_species,
-      # title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+      bioregion_name = input$bioregion
+    )
+  })
+  
+    # CTI DIAGNOSTIC PLOTS ----
+  make_top_cti_year_plot <- function(
+    bioregion_name,
+    title_lab = NULL
+  ) {
+    
+    req(bioregion_name)
+    message(bioregion_name)
+    message("CTI plots")
+    
+    df_raw <- nsw_bruv_data$cti_top_10 %>%
+      dplyr::filter(bioregion == bioregion_name) %>%
+      glimpse
+    
+    # choose the centering statistic
+    mid_niche <- median(df_raw$rls_thermal_niche, na.rm = TRUE)
+    
+    # global limits across both facets/years
+    niche_limits <- range(df_raw$rls_thermal_niche, na.rm = TRUE)
+    
+    ggplot(
+      df_raw,
+      aes(
+        x = reorder_within(label, rls_thermal_niche, year),
+        y = maxn,
+        fill = rls_thermal_niche
+      )
+    ) +
+      geom_col(colour = "black", linewidth = 0.25) +
+      geom_errorbar(
+        aes(
+          ymin = pmax(maxn - se, 0),
+          ymax = maxn + se
+        ),
+        width = 0.2
+      ) +
+      geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+      coord_flip(clip = "off") +
+      facet_wrap(~year, scales = "free_y") +
+      scale_x_reordered() +
+      scale_y_continuous(
+        trans = log1p10_trans,
+        expand = expansion(mult = c(0, 0.15)),
+        breaks = c(0, 5, 10, 20, 30),
+        labels = scales::label_number()
+      ) +
+      # centre GREY at the mean thermal niche
+      scale_fill_gradientn(
+        colours = c(
+          "#2166ac",
+          "#67a9cf",
+          "#d1e5f0",
+          "#fddbc7",
+          "#ef8a62",
+          "#b2182b"
+          
+        ),
+        values  = scales::rescale(c(niche_limits[1],
+                                    mid_niche,
+                                    niche_limits[2])),
+        limits = niche_limits,
+        na.value = "grey80"
+      ) +
+      guides(fill = "none") +
+      labs(
+        x = "Species",
+        y = expression(Log[10]~(Average~abundance~+~1))
+      ) +
+      theme_bw() +
+      theme_classic() +
+      theme(
+        # legend.position = "bottom",
+        axis.text.y = ggtext::element_markdown(size = 12)
+      )
+  }
+  
+  output[[metric_plot_id("bioregion", "cti", "diagnostic")]] <- renderPlot({
+    req(input$bioregion)
+    
+    make_top_cti_year_plot(
+      bioregion_name = input$bioregion
     )
   })
   
@@ -2164,4 +2257,176 @@ server <- function(input, output, session) {
       selected_species = input[[metric_species_input_id("bioregion", "species")]]
     )
   })
+  
+  # ABUNDANCE AND BIOMASS DIAGNOSTIC PLOTS ----
+  make_ab_diagnostic_plot <- function(
+    metric_id,
+    bioregion_name
+  ) {
+    
+    req(metric_id, bioregion_name)
+    
+    df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+      dplyr::filter(
+        bioregion == bioregion_name,
+        metric == metric_id
+      )
+    
+    validate(
+      need(
+        nrow(df) > 0,
+        paste("No diagnostic data available for", bioregion_name)
+      )
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Species occurring in the top 10 in ONLY ONE year
+    # ---------------------------------------------------------
+    
+    unique_species <- df %>%
+      dplyr::distinct(year, scientific) %>%
+      dplyr::count(scientific, name = "n_years") %>%
+      dplyr::filter(n_years == 1) %>%
+      dplyr::pull(scientific)
+    
+    
+    # ---------------------------------------------------------
+    # Prepare labels and within-facet ordering
+    # ---------------------------------------------------------
+    
+    plot_df <- df %>%
+      dplyr::group_by(year, scientific) %>%
+      dplyr::mutate(
+        order_value = mean(value, na.rm = TRUE)
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(
+        
+        # Scientific name only
+        species_label = paste(genus, species),
+        
+        # Bold species that are unique to one year's top 10.
+        # All scientific names are italicised.
+        species_label = dplyr::if_else(
+          scientific %in% unique_species,
+          paste0("***", species_label, "***"),
+          paste0("*", species_label, "*")
+        ),
+        
+        species_label = tidytext::reorder_within(
+          species_label,
+          order_value,
+          year
+        )
+      )
+    
+    
+    # Axis label
+    x_lab <- dplyr::case_when(
+      metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
+      metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
+      metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
+      metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)"
+    )
+    
+    
+    dodge <- position_dodge(width = 0.75)
+    
+    
+    ggplot(
+      plot_df,
+      aes(
+        x = value,
+        y = species_label,
+        fill = status
+      )
+    ) +
+      
+      geom_col(
+        position = dodge,
+        width = 0.7,
+        colour = "black",
+        linewidth = 0.3
+      ) +
+      
+      geom_errorbarh(
+        aes(
+          xmin = pmax(value - se, 0),
+          xmax = value + se
+        ),
+        position = dodge,
+        height = 0.2
+      ) +
+      
+      facet_wrap(
+        ~year,
+        scales = "free_y"
+      ) +
+      
+      tidytext::scale_y_reordered() +
+      
+      # Similar appearance to your example
+      scale_fill_manual(
+        values = c(
+          "Fished" = "white",
+          "No-Take" = "grey50"
+        ),
+        drop = FALSE
+      ) +
+      
+      # Similar log-like axis to the example, but can still display zero
+      scale_x_continuous(
+        trans = scales::pseudo_log_trans(base = 10),
+        expand = expansion(mult = c(0, 0.08))
+      ) +
+      
+      labs(
+        x = x_lab,
+        y = NULL,
+        fill = "Status"
+      ) +
+      
+      theme_classic(base_size = 14) +
+      
+      theme(
+        strip.background = element_rect(
+          fill = "grey85",
+          colour = "black"
+        ),
+        strip.text = element_text(
+          size = 13
+        ),
+        axis.text.y = ggtext::element_markdown(
+          size = 11
+        ),
+        legend.position = "right"
+      )
+  }
+  
+  for (id in c("a20", "b20", "a30", "b30")) {
+    
+    local({
+      
+      metric_id <- id
+      
+      output[[
+        metric_plot_id(
+          "bioregion",
+          metric_id,
+          "diagnostic"
+        )
+      ]] <- renderPlot({
+        
+        req(input$bioregion)
+        
+        make_ab_diagnostic_plot(
+          metric_id = metric_id,
+          bioregion_name = input$bioregion
+        )
+        
+      })
+      
+    })
+  }
 }
