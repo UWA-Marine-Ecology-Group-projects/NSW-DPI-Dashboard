@@ -2259,6 +2259,152 @@ server <- function(input, output, session) {
   })
   
   # ABUNDANCE AND BIOMASS DIAGNOSTIC PLOTS ----
+  # make_ab_diagnostic_plot <- function(
+  #   metric_id,
+  #   bioregion_name
+  # ) {
+  #   
+  #   req(metric_id, bioregion_name)
+  #   
+  #   df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+  #     dplyr::filter(
+  #       bioregion == bioregion_name,
+  #       metric == metric_id
+  #     )
+  #   
+  #   validate(
+  #     need(
+  #       nrow(df) > 0,
+  #       paste("No diagnostic data available for", bioregion_name)
+  #     )
+  #   )
+  #   
+  #   
+  #   # ---------------------------------------------------------
+  #   # Species occurring in the top 10 in ONLY ONE year
+  #   # ---------------------------------------------------------
+  #   
+  #   unique_species <- df %>%
+  #     dplyr::distinct(year, scientific) %>%
+  #     dplyr::count(scientific, name = "n_years") %>%
+  #     dplyr::filter(n_years == 1) %>%
+  #     dplyr::pull(scientific)
+  #   
+  #   
+  #   # ---------------------------------------------------------
+  #   # Prepare labels and within-facet ordering
+  #   # ---------------------------------------------------------
+  #   
+  #   plot_df <- df %>%
+  #     dplyr::group_by(year, scientific) %>%
+  #     dplyr::mutate(
+  #       order_value = mean(value, na.rm = TRUE)
+  #     ) %>%
+  #     dplyr::ungroup() %>%
+  #     dplyr::mutate(
+  #       
+  #       # Scientific name only
+  #       species_label = paste(genus, species),
+  #       
+  #       # Bold species that are unique to one year's top 10.
+  #       # All scientific names are italicised.
+  #       species_label = dplyr::if_else(
+  #         scientific %in% unique_species,
+  #         paste0("***", species_label, "***"),
+  #         paste0("*", species_label, "*")
+  #       ),
+  #       
+  #       species_label = tidytext::reorder_within(
+  #         species_label,
+  #         order_value,
+  #         year
+  #       )
+  #     )
+  #   
+  #   
+  #   # Axis label
+  #   x_lab <- dplyr::case_when(
+  #     metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
+  #     metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
+  #     metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
+  #     metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)"
+  #   )
+  #   
+  #   
+  #   dodge <- position_dodge(width = 0.75)
+  #   
+  #   
+  #   ggplot(
+  #     plot_df,
+  #     aes(
+  #       x = value,
+  #       y = species_label,
+  #       fill = status
+  #     )
+  #   ) +
+  #     
+  #     geom_col(
+  #       position = dodge,
+  #       width = 0.7,
+  #       colour = "black",
+  #       linewidth = 0.3
+  #     ) +
+  #     
+  #     geom_errorbarh(
+  #       aes(
+  #         xmin = pmax(value - se, 0),
+  #         xmax = value + se
+  #       ),
+  #       position = dodge,
+  #       height = 0.2
+  #     ) +
+  #     
+  #     facet_wrap(
+  #       ~year,
+  #       scales = "free_y"
+  #     ) +
+  #     
+  #     tidytext::scale_y_reordered() +
+  #     
+  #     # Similar appearance to your example
+  #     scale_fill_manual(
+  #       values = c(
+  #         "Fished" = "white",
+  #         "No-Take" = "grey50"
+  #       ),
+  #       drop = FALSE
+  #     ) +
+  #     
+  #     # Similar log-like axis to the example, but can still display zero
+  #     scale_x_continuous(
+  #       trans = scales::pseudo_log_trans(base = 10),
+  #       expand = expansion(mult = c(0, 0.08))
+  #     ) +
+  #     
+  #     labs(
+  #       x = x_lab,
+  #       y = NULL,
+  #       fill = "Status"
+  #     ) +
+  #     
+  #     theme_classic(base_size = 14) +
+  #     
+  #     theme(
+  #       strip.background = element_rect(
+  #         fill = "grey85",
+  #         colour = "black"
+  #       ),
+  #       strip.text = element_text(
+  #         size = 13
+  #       ),
+  #       axis.text.y = ggtext::element_markdown(
+  #         size = 11
+  #       ),
+  #       legend.position = "right"
+  #     )
+  # }
+  # 
+  # NEW FUNCTION ----
   make_ab_diagnostic_plot <- function(
     metric_id,
     bioregion_name
@@ -2281,7 +2427,7 @@ server <- function(input, output, session) {
     
     
     # ---------------------------------------------------------
-    # Species occurring in the top 10 in ONLY ONE year
+    # Identify species that only occur in the top 10 in one year
     # ---------------------------------------------------------
     
     unique_species <- df %>%
@@ -2292,28 +2438,30 @@ server <- function(input, output, session) {
     
     
     # ---------------------------------------------------------
-    # Prepare labels and within-facet ordering
+    # Prepare plot data
     # ---------------------------------------------------------
     
     plot_df <- df %>%
+      
+      # Order species using mean across Fished / No-Take
       dplyr::group_by(year, scientific) %>%
       dplyr::mutate(
         order_value = mean(value, na.rm = TRUE)
       ) %>%
       dplyr::ungroup() %>%
+      
       dplyr::mutate(
         
-        # Scientific name only
         species_label = paste(genus, species),
         
-        # Bold species that are unique to one year's top 10.
-        # All scientific names are italicised.
+        # Bold + italic if unique to that year's top 10
         species_label = dplyr::if_else(
           scientific %in% unique_species,
           paste0("***", species_label, "***"),
           paste0("*", species_label, "*")
         ),
         
+        # Order separately within each year
         species_label = tidytext::reorder_within(
           species_label,
           order_value,
@@ -2322,7 +2470,10 @@ server <- function(input, output, session) {
       )
     
     
+    # ---------------------------------------------------------
     # Axis label
+    # ---------------------------------------------------------
+    
     x_lab <- dplyr::case_when(
       metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
       metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
@@ -2331,8 +2482,11 @@ server <- function(input, output, session) {
     )
     
     
-    dodge <- position_dodge(width = 0.75)
+    # ---------------------------------------------------------
+    # Plot
+    # ---------------------------------------------------------
     
+    dodge <- position_dodge(width = 0.75)
     
     ggplot(
       plot_df,
@@ -2344,10 +2498,7 @@ server <- function(input, output, session) {
     ) +
       
       geom_col(
-        position = dodge,
-        width = 0.7,
-        colour = "black",
-        linewidth = 0.3
+        position = dodge
       ) +
       
       geom_errorbarh(
@@ -2356,7 +2507,7 @@ server <- function(input, output, session) {
           xmax = value + se
         ),
         position = dodge,
-        height = 0.2
+        height = 0.3
       ) +
       
       facet_wrap(
@@ -2366,44 +2517,47 @@ server <- function(input, output, session) {
       
       tidytext::scale_y_reordered() +
       
-      # Similar appearance to your example
+      # Same colours as other dashboard species plots
       scale_fill_manual(
         values = c(
-          "Fished" = "white",
-          "No-Take" = "grey50"
-        ),
-        drop = FALSE
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        )
       ) +
       
-      # Similar log-like axis to the example, but can still display zero
-      scale_x_continuous(
-        trans = scales::pseudo_log_trans(base = 10),
-        expand = expansion(mult = c(0, 0.08))
-      ) +
+      # Same x-axis style as existing bar plots
+      # scale_x_continuous(
+      #   expand = expansion(mult = c(0, 0.05))
+      # ) +
+      
+          scale_x_continuous(
+            trans = scales::pseudo_log_trans(base = 10),
+            expand = expansion(mult = c(0, 0.08))
+          ) +
       
       labs(
         x = x_lab,
         y = NULL,
-        fill = "Status"
+        fill = NULL
       ) +
       
-      theme_classic(base_size = 14) +
+      # Same theme as existing bar plots
+      theme_classic() +
       
       theme(
-        strip.background = element_rect(
-          fill = "grey85",
-          colour = "black"
-        ),
+        legend.position = "bottom",
+        axis.text.y = ggtext::element_markdown(size = 12),
+        
+        # Keep facet headers simple
+        strip.background = element_blank(),
         strip.text = element_text(
-          size = 13
-        ),
-        axis.text.y = ggtext::element_markdown(
-          size = 11
-        ),
-        legend.position = "right"
+          size = 12,
+          face = "bold"
+        )
       )
   }
   
+  # MAKE PLOTS -----
   for (id in c("a20", "b20", "a30", "b30")) {
     
     local({
