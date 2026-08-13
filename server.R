@@ -1356,6 +1356,8 @@ server <- function(input, output, session) {
         )
       )
     
+    max_maxn <- max(df_raw$maxn) + max(df_raw$se)
+    
     # choose the centering statistic
     mid_niche <- median(df_raw$rls_thermal_niche, na.rm = TRUE)
     
@@ -1381,7 +1383,7 @@ server <- function(input, output, session) {
       # geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
           geom_text(
             aes(
-              y = 19,
+              y = max_maxn + 1,
               label = paste0(niche_lab, "\u00B0C")
             ),
             hjust = 0,
