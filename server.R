@@ -427,7 +427,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
       
     },
     
-    if (metric_id %in% c("a20", "b20", "a30", "b30")) {
+    if (metric_id %in% c("a20", "b20", "a30", "b30", "alt", "blt")) {
       
       card(
         full_screen = TRUE,
@@ -3121,7 +3121,9 @@ server <- function(input, output, session) {
       metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
       metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
       metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
-      metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)"
+      metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)",
+      metric_id == "alt" ~ "Average abundance LT per BRUV",
+      metric_id == "blt" ~ "Average biomass LT per BRUV (kg)"
     )
     
     
@@ -3201,7 +3203,7 @@ server <- function(input, output, session) {
   }
   
   # MAKE PLOTS -----
-  for (id in c("a20", "b20", "a30", "b30")) {
+  for (id in c("a20", "b20", "a30", "b30", "alt", "blt")) {
     
     local({
       

@@ -228,6 +228,61 @@ length_mass_lbc <- bruv_length %>%
   dplyr::mutate(mass_g = (adjlength ^ fb_b) * fb_a * count) %>%
   glimpse()
 
+# DIAGNOSITC BLT ----
+lbc_species <- length_mass_lbc %>%
+  dplyr::group_by(sample_url, family, genus, species) %>%
+  dplyr::summarise(number = sum(count), mass_g =sum(mass_g)) %>%
+  ungroup() %>%
+  dplyr::mutate(scientific = paste(family, genus, species)) %>%
+  dplyr::full_join(length_samples) %>%
+  tidyr::complete(sample_url, nesting(scientific,family, genus, species)) %>%
+  dplyr::select(sample_url, scientific, family, genus, species, number, mass_g) %>%
+  replace_na(list(number = 0, mass_g = 0)) %>%
+  glimpse()
+
+nrow(length_samples)
+length(unique(lbc_species$scientific))
+18 * 2120
+
+top_10_lbc_abundance_bioregion <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_number) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+top_10_lbc_biomass_bioregion <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_mass_g) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+lbc_status <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, status, scientific, family, genus, species) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   se_num = sd(number, na.rm = TRUE) / sqrt(sum(!is.na(number))),
+                   avg_mass_g =mean(mass_g), 
+                   se_mass = sd(mass_g, na.rm = TRUE) / sqrt(sum(!is.na(mass_g)))) %>%
+  ungroup()
+
+top_10_alt <- lbc_status %>%
+  semi_join(top_10_lbc_abundance_bioregion) %>%
+  dplyr::mutate(metric = "alt", value = avg_number, se = se_num)
+
+top_10_blt <- lbc_status %>%
+  semi_join(top_10_lbc_biomass_bioregion) %>%
+  dplyr::mutate(metric = "blt", value = avg_mass_g / 1000, se = se_mass / 1000)
+
+# OTHER SIZE METRICS ----
 blt_samples <- length_mass_lbc %>%
   dplyr::filter(length_mm > l50) %>% # FOR BLT > Length of maturity
   dplyr::group_by(sample_url) %>%
@@ -416,7 +471,12 @@ top_10_b30 <- fish_bigger_300_status %>%
                 value = avg_mass_g / 1000, se = se_mass / 1000)
 
 # Diagnostic plots for a20, b20, a30 and b30 ----
-top_10_diagnostic_a_and_b <- bind_rows(top_10_a20, top_10_b20, top_10_a30, top_10_b30) %>%
+top_10_diagnostic_a_and_b <- bind_rows(top_10_a20, 
+                                       top_10_b20, 
+                                       top_10_a30, 
+                                       top_10_b30,
+                                       top_10_alt,
+                                       top_10_blt) %>%
   dplyr::select(bioregion, year, status, scientific, family, genus, species, metric, value, se) %>%
   dplyr::left_join(
     common_names,
