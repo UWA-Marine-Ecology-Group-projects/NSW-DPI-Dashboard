@@ -21,6 +21,20 @@ bruv_metadata <- readRDS("data/raw/bruv_metadata_nsw.rds") %>%
   dplyr::filter(!month %in% c("01", "02", "12")) %>% # Remove summer
   glimpse
 
+unique(bruv_metadata$campaignid) %>% sort()
+
+campaigns <- bruv_metadata %>% distinct(campaignid, bioregion) 
+
+compare_years <- bruv_metadata %>%
+  distinct(campaignid, year) %>%
+  mutate(campaign_year = str_sub(campaignid, 1, 4)) %>%
+  dplyr::filter(!campaign_year == year)
+ 
+# 2022_PSGLMP_stereoBRUVs - has drops in 2016?
+# TODO ask Nathan/Matt1
+
+unique(compare_years$campaign_year)
+
 unique(bruv_metadata$month) %>% sort()
 
 campaign_lookup <- bruv_metadata %>%
@@ -423,6 +437,22 @@ metrics <- bind_rows(total_abundance_samples,
   left_join(count_samples %>% 
               select(sample_url, sample, date_time, date, status)) %>%
   left_join(campaign_lookup)
+
+metrics_mean_se <- metrics %>%
+  dplyr::group_by(metric, bioregion, year, status) %>%
+  dplyr::summarise(
+    n    = sum(!is.na(value)),
+    mean = mean(value, na.rm = TRUE),
+    se   = dplyr::if_else(
+      n > 1,
+      stats::sd(value, na.rm = TRUE) / sqrt(n),
+      0
+    ),
+    .groups = "drop"
+  ) %>%
+  glimpse
+
+readr::write_csv(metrics_mean_se, "outputs/metrics_mean_se.csv")
 
 ## Indicator Species and most abundant species -----
 # TODO start with top 50 most abundant
