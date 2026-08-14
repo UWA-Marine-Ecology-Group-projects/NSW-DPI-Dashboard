@@ -1176,35 +1176,109 @@ server <- function(input, output, session) {
   make_top_abundance_bioregion_status_year_plot <- function(
     bioregion_name,
     selected_year,
+    comparison_year,
     number_species = 10,
     title_lab = NULL
   ) {
     
     req(bioregion_name, selected_year)
     
-    df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
-      dplyr::filter(bioregion == bioregion_name) %>%
-      dplyr::filter(as.character(year) == as.character(selected_year))
+    # df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+    #   dplyr::filter(bioregion == bioregion_name) %>%
+    #   dplyr::filter(as.character(year) == as.character(selected_year))
+    # 
+    # validate(
+    #   need(nrow(df_raw) > 0, paste("No species data available for", bioregion_name, "in", selected_year))
+    # )
+    # 
+    # top_species <- df_raw %>%
+    #   dplyr::group_by(display_name) %>%
+    #   dplyr::summarise(
+    #     overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+    #     .groups = "drop"
+    #   ) %>%
+    #   dplyr::slice_max(
+    #     order_by = overall_average_abundance,
+    #     n = number_species,
+    #     with_ties = FALSE
+    #   ) %>%
+    #   dplyr::pull(display_name)
+    # 
+    # plot_df <- df_raw %>%
+    #   dplyr::filter(display_name %in% top_species)
     
-    validate(
-      need(nrow(df_raw) > 0, paste("No species data available for", bioregion_name, "in", selected_year))
-    )
+    # Get data for the TWO selected years
+    df_compare <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+      dplyr::filter(
+        bioregion == bioregion_name,
+        as.character(year) %in% as.character(c(selected_year, comparison_year))
+      )
     
-    top_species <- df_raw %>%
-      dplyr::group_by(display_name) %>%
+    # Top N species separately for each of the two selected years
+    top_species_by_year <- df_compare %>%
+      dplyr::group_by(year, display_name) %>%
       dplyr::summarise(
         overall_average_abundance = sum(average_abundance, na.rm = TRUE),
         .groups = "drop"
       ) %>%
+      dplyr::group_by(year) %>%
       dplyr::slice_max(
         order_by = overall_average_abundance,
         n = number_species,
         with_ties = FALSE
       ) %>%
+      dplyr::ungroup()
+    
+    # Species in the selected year's top N
+    selected_top_species <- top_species_by_year %>%
+      dplyr::filter(as.character(year) == as.character(selected_year)) %>%
       dplyr::pull(display_name)
     
+    # Species in the OTHER selected year's top N
+    comparison_top_species <- top_species_by_year %>%
+      dplyr::filter(as.character(year) == as.character(comparison_year)) %>%
+      dplyr::pull(display_name)
+    
+    # Species unique to THIS selected year
+    unique_species <- setdiff(
+      selected_top_species,
+      comparison_top_species
+    )
+    
+    # Data to actually plot
+    df_raw <- df_compare %>%
+      dplyr::filter(
+        as.character(year) == as.character(selected_year)
+      )
+    
+    validate(
+      need(
+        nrow(df_raw) > 0,
+        paste(
+          "No species data available for",
+          bioregion_name,
+          "in",
+          selected_year
+        )
+      )
+    )
+    
     plot_df <- df_raw %>%
-      dplyr::filter(display_name %in% top_species)
+      dplyr::filter(display_name %in% selected_top_species)
+    
+    # species_order <- plot_df %>%
+    #   dplyr::group_by(label) %>%
+    #   dplyr::summarise(
+    #     overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+    #     .groups = "drop"
+    #   ) %>%
+    #   dplyr::arrange(overall_average_abundance) %>%
+    #   dplyr::pull(label)
+    # 
+    # plot_df <- plot_df %>%
+    #   dplyr::mutate(
+    #     label = factor(label, levels = species_order)
+    #   )
     
     species_order <- plot_df %>%
       dplyr::group_by(label) %>%
@@ -1215,14 +1289,38 @@ server <- function(input, output, session) {
       dplyr::arrange(overall_average_abundance) %>%
       dplyr::pull(label)
     
+    # Bold species that are unique between the two chosen years
     plot_df <- plot_df %>%
       dplyr::mutate(
-        label = factor(label, levels = species_order)
+        plot_label = dplyr::if_else(
+          display_name %in% unique_species,
+          paste0("<b>", label, "</b>"),
+          label
+        )
+      )
+    
+    # Preserve the abundance ordering after changing the labels
+    species_order_plot <- plot_df %>%
+      dplyr::distinct(label, plot_label) %>%
+      dplyr::mutate(
+        order = match(label, species_order)
+      ) %>%
+      dplyr::arrange(order) %>%
+      dplyr::pull(plot_label)
+    
+    plot_df <- plot_df %>%
+      dplyr::mutate(
+        plot_label = factor(
+          plot_label,
+          levels = species_order_plot
+        )
       )
     
     dodge <- position_dodge(width = 0.75)
     
-    ggplot(plot_df, aes(x = average_abundance, y = label, fill = status)) +
+    ggplot(plot_df, aes(x = average_abundance, 
+                        y = plot_label, 
+                        fill = status)) +
       geom_col(position = dodge) +
       geom_errorbarh(
         aes(
@@ -1281,24 +1379,92 @@ server <- function(input, output, session) {
     req(input$bioregion)
     req(input[[metric_year_input_id("bioregion", "total_abundance", "left")]])
     
+    # make_top_abundance_bioregion_status_year_plot(
+    #   bioregion_name = input$bioregion,
+    #   selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "left")]],
+    #   number_species = input$bioregion_number_species,
+    #   title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "left")]]
+    # )
+    
     make_top_abundance_bioregion_status_year_plot(
       bioregion_name = input$bioregion,
-      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "left")]],
+      
+      selected_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]],
+      
+      comparison_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]],
+      
       number_species = input$bioregion_number_species,
-      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "left")]]
+      
+      title_lab =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]]
     )
+    
   })
   
   output[[metric_plot_id("bioregion", "total_abundance", "right_year_status")]] <- renderPlot({
     req(input$bioregion)
     req(input[[metric_year_input_id("bioregion", "total_abundance", "right")]])
     
+    # make_top_abundance_bioregion_status_year_plot(
+    #   bioregion_name = input$bioregion,
+    #   selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+    #   number_species = input$bioregion_number_species,
+    #   title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+    # )
+    
     make_top_abundance_bioregion_status_year_plot(
       bioregion_name = input$bioregion,
-      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+      
+      selected_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]],
+      
+      comparison_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]],
+      
       number_species = input$bioregion_number_species,
-      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+      
+      title_lab =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]]
     )
+    
   })
   
   #   # CTI DIAGNOSTIC PLOTS ----
