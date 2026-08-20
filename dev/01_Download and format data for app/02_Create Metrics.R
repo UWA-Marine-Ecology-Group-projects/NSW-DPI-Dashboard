@@ -185,6 +185,7 @@ species_count <- bruv_count %>%
 
 nsw_lbc <- semi_join(large_bodied_carnivores, bruv_count) %>%
   left_join(species_count)
+
 # 69 species in NSW data that have trophic level over 2.8 and max length above 400 mm
 # only 20 of them have a size of maturity
 
