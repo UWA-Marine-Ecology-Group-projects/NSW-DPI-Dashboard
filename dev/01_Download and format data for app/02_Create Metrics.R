@@ -7,6 +7,9 @@ library(here)
 library(sf)
 library(vegan)
 
+common_names <- CheckEM::australia_life_history %>%
+  select(family, genus, species, australian_common_name)
+
 # TODO - should Pseudocaranx georgianus be spp in everything?
 
 # Read in data ----
@@ -17,6 +20,20 @@ bruv_metadata <- readRDS("data/raw/bruv_metadata_nsw.rds") %>%
   dplyr::mutate(month = str_sub(date_time, 6, 7)) %>%
   dplyr::filter(!month %in% c("01", "02", "12")) %>% # Remove summer
   glimpse
+
+unique(bruv_metadata$campaignid) %>% sort()
+
+campaigns <- bruv_metadata %>% distinct(campaignid, bioregion) 
+
+compare_years <- bruv_metadata %>%
+  distinct(campaignid, year) %>%
+  mutate(campaign_year = str_sub(campaignid, 1, 4)) %>%
+  dplyr::filter(!campaign_year == year)
+ 
+# 2022_PSGLMP_stereoBRUVs - has drops in 2016?
+# TODO ask Nathan/Matt1
+
+unique(compare_years$campaign_year)
 
 unique(bruv_metadata$month) %>% sort()
 
@@ -212,6 +229,61 @@ length_mass_lbc <- bruv_length %>%
   dplyr::mutate(mass_g = (adjlength ^ fb_b) * fb_a * count) %>%
   glimpse()
 
+# DIAGNOSITC BLT ----
+lbc_species <- length_mass_lbc %>%
+  dplyr::group_by(sample_url, family, genus, species) %>%
+  dplyr::summarise(number = sum(count), mass_g =sum(mass_g)) %>%
+  ungroup() %>%
+  dplyr::mutate(scientific = paste(family, genus, species)) %>%
+  dplyr::full_join(length_samples) %>%
+  tidyr::complete(sample_url, nesting(scientific,family, genus, species)) %>%
+  dplyr::select(sample_url, scientific, family, genus, species, number, mass_g) %>%
+  replace_na(list(number = 0, mass_g = 0)) %>%
+  glimpse()
+
+nrow(length_samples)
+length(unique(lbc_species$scientific))
+18 * 2120
+
+top_10_lbc_abundance_bioregion <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_number) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+top_10_lbc_biomass_bioregion <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_mass_g) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+lbc_status <- lbc_species %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, status, scientific, family, genus, species) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   se_num = sd(number, na.rm = TRUE) / sqrt(sum(!is.na(number))),
+                   avg_mass_g =mean(mass_g), 
+                   se_mass = sd(mass_g, na.rm = TRUE) / sqrt(sum(!is.na(mass_g)))) %>%
+  ungroup()
+
+top_10_alt <- lbc_status %>%
+  semi_join(top_10_lbc_abundance_bioregion) %>%
+  dplyr::mutate(metric = "alt", value = avg_number, se = se_num)
+
+top_10_blt <- lbc_status %>%
+  semi_join(top_10_lbc_biomass_bioregion) %>%
+  dplyr::mutate(metric = "blt", value = avg_mass_g / 1000, se = se_mass / 1000)
+
+# OTHER SIZE METRICS ----
 blt_samples <- length_mass_lbc %>%
   dplyr::filter(length_mm > l50) %>% # FOR BLT > Length of maturity
   dplyr::group_by(sample_url) %>%
@@ -289,6 +361,129 @@ a30_samples <- length_for_size_biomass %>%
   dplyr::rename(value = number) %>%
   dplyr::select(campaignid, sample, sample_url, metric, value) 
 
+fish_bigger_20 <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 200) %>% 
+  dplyr::group_by(sample_url, family, genus, species) %>%
+  dplyr::summarise(number = sum(count), mass_g =sum(mass_g)) %>%
+  ungroup() %>%
+  dplyr::mutate(scientific = paste(family, genus, species)) %>%
+  dplyr::full_join(length_samples) %>%
+  tidyr::complete(sample_url, nesting(scientific,family, genus, species)) %>%
+  dplyr::select(sample_url, scientific, family, genus, species, number, mass_g) %>%
+  replace_na(list(number = 0, mass_g = 0)) %>%
+  glimpse()
+
+# nrow(length_samples)
+# length(unique(fish_bigger_20$scientific))
+# 152 * 2450
+
+top_10_abundance_bioregion <- fish_bigger_20 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_number) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+top_10_biomass_bioregion <- fish_bigger_20 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_mass_g) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+fish_bigger_200_status <- fish_bigger_20 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, status, scientific, family, genus, species) %>%
+  dplyr::summarise(avg_number = mean(number), 
+                   se_num = sd(number, na.rm = TRUE) / sqrt(sum(!is.na(number))),
+                   avg_mass_g =mean(mass_g), 
+                   se_mass = sd(mass_g, na.rm = TRUE) / sqrt(sum(!is.na(mass_g)))) %>%
+  ungroup()
+
+top_10_a20 <- fish_bigger_200_status %>%
+  semi_join(top_10_abundance_bioregion) %>%
+  dplyr::mutate(metric = "a20", value = avg_number, se = se_num)
+
+top_10_b20 <- fish_bigger_200_status %>%
+  semi_join(top_10_biomass_bioregion) %>%
+  dplyr::mutate(metric = "b20", value = avg_mass_g / 1000, se = se_mass / 1000)
+
+# Bigger than 30 cm ----
+fish_bigger_30 <- length_for_size_biomass %>%
+  dplyr::filter(length_mm > 300) %>% 
+  dplyr::group_by(sample_url, family, genus, species) %>%
+  dplyr::summarise(number = sum(count), mass_g =sum(mass_g)) %>%
+  ungroup() %>%
+  dplyr::mutate(scientific = paste(family, genus, species)) %>%
+  dplyr::full_join(length_samples) %>%
+  tidyr::complete(sample_url, nesting(scientific,family, genus, species)) %>%
+  dplyr::select(sample_url, scientific, family, genus, species, number, mass_g) %>%
+  replace_na(list(number = 0, mass_g = 0)) %>%
+  glimpse()
+
+nrow(length_samples)
+length(unique(fish_bigger_30$scientific))
+123 * 2450
+nrow(fish_bigger_30)
+
+top_10_abundance_bioregion_30 <- fish_bigger_30 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, scientific) %>%
+  dplyr::summarise(avg_number = mean(number), avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_number) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+top_10_biomass_bioregion_30 <- fish_bigger_30 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, scientific, year) %>%
+  dplyr::summarise(avg_number = mean(number), avg_mass_g =mean(mass_g)) %>%
+  ungroup() %>%
+  dplyr::group_by(bioregion, year) %>%
+  arrange(-avg_mass_g) %>%
+  slice(1:10) %>%
+  distinct(bioregion, scientific, year)
+
+fish_bigger_300_status <- fish_bigger_30 %>%
+  dplyr::full_join(length_samples) %>%
+  dplyr::group_by(bioregion, year, status, scientific, family, genus, species) %>%
+  dplyr::summarise(avg_number = mean(number),
+                   se_num = sd(number, na.rm = TRUE) / sqrt(sum(!is.na(number))),
+                   avg_mass_g =mean(mass_g), 
+                   se_mass = sd(mass_g, na.rm = TRUE) / sqrt(sum(!is.na(mass_g)))) %>%
+  ungroup()
+
+top_10_a30 <- fish_bigger_300_status %>%
+  semi_join(top_10_abundance_bioregion_30) %>%
+  dplyr::mutate(metric = "a30", value = avg_number, se = se_num)
+
+top_10_b30 <- fish_bigger_300_status %>%
+  semi_join(top_10_biomass_bioregion_30) %>%
+  dplyr::mutate(metric = "b30", 
+                value = avg_mass_g / 1000, se = se_mass / 1000)
+
+# Diagnostic plots for a20, b20, a30 and b30 ----
+top_10_diagnostic_a_and_b <- bind_rows(top_10_a20, 
+                                       top_10_b20, 
+                                       top_10_a30, 
+                                       top_10_b30,
+                                       top_10_alt,
+                                       top_10_blt) %>%
+  dplyr::select(bioregion, year, status, scientific, family, genus, species, metric, value, se) %>%
+  dplyr::left_join(
+    common_names,
+    by = c("family", "genus", "species")
+  ) %>% glimpse()
+
 # Combine all metrics ----
 metrics <- bind_rows(total_abundance_samples, 
                      species_richness_samples, 
@@ -303,6 +498,22 @@ metrics <- bind_rows(total_abundance_samples,
   left_join(count_samples %>% 
               select(sample_url, sample, date_time, date, status)) %>%
   left_join(campaign_lookup)
+
+metrics_mean_se <- metrics %>%
+  dplyr::group_by(metric, bioregion, year, status) %>%
+  dplyr::summarise(
+    n    = sum(!is.na(value)),
+    mean = mean(value, na.rm = TRUE),
+    se   = dplyr::if_else(
+      n > 1,
+      stats::sd(value, na.rm = TRUE) / sqrt(n),
+      0
+    ),
+    .groups = "drop"
+  ) %>%
+  glimpse
+
+readr::write_csv(metrics_mean_se, "outputs/metrics_mean_se.csv")
 
 ## Indicator Species and most abundant species -----
 # TODO start with top 50 most abundant
@@ -374,9 +585,6 @@ top_50_most_abundant_species_bioregion_status <- complete_bruv_count %>%
   dplyr::mutate(group = "bioregion") %>%
   dplyr::mutate(by_status = TRUE) %>%
   glimpse
-
-common_names <- CheckEM::australia_life_history %>%
-  select(family, genus, species, australian_common_name)
 
 top_50_most_abundant_species_bioregion_status_year <- complete_bruv_count %>%
   left_join(count_samples) %>%
@@ -689,7 +897,67 @@ maturity_mean <- maturity %>%
   ungroup() %>%
   glimpse()
 
-
+# Species length data for dashboard ----
+# Species length data for dashboard ----
+species_length_data <- bruv_length %>%
+  
+  # Add year
+  dplyr::left_join(
+    bruv_metadata %>%
+      sf::st_drop_geometry() %>%
+      dplyr::select(
+        sample_url,
+        year
+      ) %>%
+      dplyr::distinct(),
+    by = "sample_url"
+  ) %>%
+  
+  # Keep measured fish only
+  dplyr::filter(
+    !is.na(length_mm),
+    !is.na(year)
+  ) %>%
+  
+  dplyr::select(
+    sample_url,
+    bioregion,
+    year,
+    status,
+    family,
+    genus,
+    species,
+    length_mm,
+    count
+  ) %>%
+  
+  # Add common name
+  dplyr::left_join(
+    common_names,
+    by = c(
+      "family",
+      "genus",
+      "species"
+    )
+  ) %>%
+  
+  # Same species label used elsewhere in dashboard
+  dplyr::mutate(
+    display_name = dplyr::if_else(
+      is.na(australian_common_name),
+      paste(genus, species),
+      paste0(
+        genus,
+        " ",
+        species,
+        " (",
+        australian_common_name,
+        ")"
+      )
+    )
+  ) %>%
+  
+  glimpse()
 
 
 # Combined data
@@ -706,11 +974,14 @@ nsw_bruv_data <- structure(
     # Diagnostic data
     species_accumulation = species_accumulation,
     cti_top_10 = cti_top_10, 
+    top_10_diagnostic_a_and_b = top_10_diagnostic_a_and_b,
     
     # TODO add shapefiles here
     bioregions_shp = bioregions_shp,
     
-    top_50_abundance = top_50_abundance
+    top_50_abundance = top_50_abundance,
+    
+    species_length_data = species_length_data
     
   ), class = "data")
 

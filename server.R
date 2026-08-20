@@ -121,37 +121,189 @@ metric_species_input_id <- function(prefix, metric_id) {
   paste0(prefix, "_", metric_id)
 }
 
+# ID for switch controlling year facets
+metric_species_length_facet_id <- function(prefix, metric_id) {
+  paste0(
+    prefix,
+    "_",
+    metric_id,
+    "_length_facet_year"
+  )
+}
+
+# ID for dynamically sized length plot UI
+metric_species_length_ui_id <- function(prefix, metric_id) {
+  paste0(
+    prefix,
+    "_",
+    metric_id,
+    "_length_ui"
+  )
+}
+
 metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = NULL, species_choices = NULL) {
   
   data_id <- metric_id
   
+  n_years <- length(
+    unique(
+      stats::na.omit(
+        year_choices
+      )
+    )
+  )
+  
+  facet_rows <- max(
+    1,
+    ceiling(n_years / 3)
+  )
+  
+  diagnostic_height <- 450 * facet_rows
+  
+  # # Special layout for species
+  # if (metric_id == "species") {
+  #   return(
+  #     tagList(
+  #       
+  #       selectInput(
+  #         inputId = metric_species_input_id(prefix, data_id),
+  #         label   = "Choose a species",
+  #         choices = species_choices,
+  #         width = "100%",
+  #         selected = species_choices[1]
+  #       ),
+  #       
+  #       layout_columns(
+  #         col_widths = c(6, 6),
+  #         
+  #         card(
+  #           full_screen = TRUE,
+  #           card_header("Temporal"),
+  #           metric_plotOutput(
+  #             prefix = prefix,
+  #             metric_id = data_id,
+  #             which = "year",
+  #             height = 600
+  #           )
+  #         ),
+  #         
+  #         card(
+  #           full_screen = TRUE,
+  #           card_header("Spatial"),
+  #           metric_leafletOutput(
+  #             prefix = prefix,
+  #             metric_id = data_id,
+  #             which = "map",
+  #             height = 500
+  #           )
+  #         )
+  #       ),
+  #       
+  #       card(
+  #         full_screen = TRUE,
+  #         card_header("Length distribution"),
+  #         
+  #         metric_plotOutput(
+  #           prefix = prefix,
+  #           metric_id = data_id,
+  #           which = "length",
+  #           height = 500
+  #         )
+  #       )
+  #     )
+  #   )
+  # }
+  
   # Special layout for species
   if (metric_id == "species") {
+    
     return(
       tagList(
         
+        # -------------------------------------------------------
+        # Species selector
+        # -------------------------------------------------------
+        
         selectInput(
-          inputId = metric_species_input_id(prefix, data_id),
-          label   = "Choose a species",
+          inputId = metric_species_input_id(
+            prefix,
+            data_id
+          ),
+          label = "Choose a species",
           choices = species_choices,
           width = "100%",
           selected = species_choices[1]
         ),
         
+        
+        # -------------------------------------------------------
+        # Existing temporal plot + spatial map
+        # -------------------------------------------------------
+        
         layout_columns(
-          col_widths = c(6,6),
-          metric_plotOutput(
-            prefix = prefix,
-            metric_id = data_id,
-            which = "year",
-            height = 600
+          col_widths = c(6, 6),
+          
+          card(
+            full_screen = TRUE,
+            card_header("Temporal"),
+            
+            metric_plotOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "year",
+              height = 600
+            )
           ),
           
-          metric_leafletOutput(
-            prefix = prefix,
-            metric_id = data_id,
-            which = "map",
-            height = 500
+          card(
+            full_screen = TRUE,
+            card_header("Spatial"),
+            
+            metric_leafletOutput(
+              prefix = prefix,
+              metric_id = data_id,
+              which = "map",
+              height = 500
+            )
+          )
+        ),
+        
+        
+        # -------------------------------------------------------
+        # Length distribution
+        # -------------------------------------------------------
+        
+        card(
+          full_screen = TRUE,
+          
+          card_header(
+            "Length distribution"
+          ),
+          
+          card_body(
+            
+            # Switch:
+            # FALSE = all years combined
+            # TRUE  = facet by year
+            bslib::input_switch(
+              id = metric_species_length_facet_id(
+                prefix,
+                data_id
+              ),
+              label = "Facet by year",
+              value = FALSE
+            ),
+            
+            br(),
+            
+            # Plot height is generated reactively
+            # depending on whether facets are turned on
+            uiOutput(
+              metric_species_length_ui_id(
+                prefix,
+                data_id
+              )
+            )
           )
         )
       )
@@ -231,26 +383,6 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
       )
     },
     
-    # if (metric_id %in% c("cti", "species_richness")) {
-    #   card(
-    #     full_screen = TRUE,
-    #     card_header("Diagnostic plots"),
-    #     
-    #     layout_columns(
-    #       col_widths = c(12),
-    #       
-    #       div(
-    #         metric_plotOutput(
-    #           prefix = prefix,
-    #           metric_id = data_id,
-    #           which = "diagnostic",
-    #           height = 700
-    #         )
-    #       )
-    #     )
-    #   )
-    # }
-    
     if (metric_id == "cti") {
       
       card(
@@ -265,7 +397,7 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
               prefix = prefix,
               metric_id = data_id,
               which = "diagnostic",
-              height = 900
+              height = diagnostic_height
             )
           )
         )
@@ -293,6 +425,21 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
         )
       )
       
+    },
+    
+    if (metric_id %in% c("a20", "b20", "a30", "b30", "alt", "blt")) {
+      
+      card(
+        full_screen = TRUE,
+        card_header("Top 10 species by year"),
+        
+        metric_plotOutput(
+          prefix = prefix,
+          metric_id = data_id,
+          which = "diagnostic",
+          height = diagnostic_height
+        )
+      )
     }
   )
 }
@@ -1029,35 +1176,109 @@ server <- function(input, output, session) {
   make_top_abundance_bioregion_status_year_plot <- function(
     bioregion_name,
     selected_year,
+    comparison_year,
     number_species = 10,
     title_lab = NULL
   ) {
     
     req(bioregion_name, selected_year)
     
-    df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
-      dplyr::filter(bioregion == bioregion_name) %>%
-      dplyr::filter(as.character(year) == as.character(selected_year))
+    # df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+    #   dplyr::filter(bioregion == bioregion_name) %>%
+    #   dplyr::filter(as.character(year) == as.character(selected_year))
+    # 
+    # validate(
+    #   need(nrow(df_raw) > 0, paste("No species data available for", bioregion_name, "in", selected_year))
+    # )
+    # 
+    # top_species <- df_raw %>%
+    #   dplyr::group_by(display_name) %>%
+    #   dplyr::summarise(
+    #     overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+    #     .groups = "drop"
+    #   ) %>%
+    #   dplyr::slice_max(
+    #     order_by = overall_average_abundance,
+    #     n = number_species,
+    #     with_ties = FALSE
+    #   ) %>%
+    #   dplyr::pull(display_name)
+    # 
+    # plot_df <- df_raw %>%
+    #   dplyr::filter(display_name %in% top_species)
     
-    validate(
-      need(nrow(df_raw) > 0, paste("No species data available for", bioregion_name, "in", selected_year))
-    )
+    # Get data for the TWO selected years
+    df_compare <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+      dplyr::filter(
+        bioregion == bioregion_name,
+        as.character(year) %in% as.character(c(selected_year, comparison_year))
+      )
     
-    top_species <- df_raw %>%
-      dplyr::group_by(display_name) %>%
+    # Top N species separately for each of the two selected years
+    top_species_by_year <- df_compare %>%
+      dplyr::group_by(year, display_name) %>%
       dplyr::summarise(
         overall_average_abundance = sum(average_abundance, na.rm = TRUE),
         .groups = "drop"
       ) %>%
+      dplyr::group_by(year) %>%
       dplyr::slice_max(
         order_by = overall_average_abundance,
         n = number_species,
         with_ties = FALSE
       ) %>%
+      dplyr::ungroup()
+    
+    # Species in the selected year's top N
+    selected_top_species <- top_species_by_year %>%
+      dplyr::filter(as.character(year) == as.character(selected_year)) %>%
       dplyr::pull(display_name)
     
+    # Species in the OTHER selected year's top N
+    comparison_top_species <- top_species_by_year %>%
+      dplyr::filter(as.character(year) == as.character(comparison_year)) %>%
+      dplyr::pull(display_name)
+    
+    # Species unique to THIS selected year
+    unique_species <- setdiff(
+      selected_top_species,
+      comparison_top_species
+    )
+    
+    # Data to actually plot
+    df_raw <- df_compare %>%
+      dplyr::filter(
+        as.character(year) == as.character(selected_year)
+      )
+    
+    validate(
+      need(
+        nrow(df_raw) > 0,
+        paste(
+          "No species data available for",
+          bioregion_name,
+          "in",
+          selected_year
+        )
+      )
+    )
+    
     plot_df <- df_raw %>%
-      dplyr::filter(display_name %in% top_species)
+      dplyr::filter(display_name %in% selected_top_species)
+    
+    # species_order <- plot_df %>%
+    #   dplyr::group_by(label) %>%
+    #   dplyr::summarise(
+    #     overall_average_abundance = sum(average_abundance, na.rm = TRUE),
+    #     .groups = "drop"
+    #   ) %>%
+    #   dplyr::arrange(overall_average_abundance) %>%
+    #   dplyr::pull(label)
+    # 
+    # plot_df <- plot_df %>%
+    #   dplyr::mutate(
+    #     label = factor(label, levels = species_order)
+    #   )
     
     species_order <- plot_df %>%
       dplyr::group_by(label) %>%
@@ -1068,14 +1289,38 @@ server <- function(input, output, session) {
       dplyr::arrange(overall_average_abundance) %>%
       dplyr::pull(label)
     
+    # Bold species that are unique between the two chosen years
     plot_df <- plot_df %>%
       dplyr::mutate(
-        label = factor(label, levels = species_order)
+        plot_label = dplyr::if_else(
+          display_name %in% unique_species,
+          paste0("<b>", label, "</b>"),
+          label
+        )
+      )
+    
+    # Preserve the abundance ordering after changing the labels
+    species_order_plot <- plot_df %>%
+      dplyr::distinct(label, plot_label) %>%
+      dplyr::mutate(
+        order = match(label, species_order)
+      ) %>%
+      dplyr::arrange(order) %>%
+      dplyr::pull(plot_label)
+    
+    plot_df <- plot_df %>%
+      dplyr::mutate(
+        plot_label = factor(
+          plot_label,
+          levels = species_order_plot
+        )
       )
     
     dodge <- position_dodge(width = 0.75)
     
-    ggplot(plot_df, aes(x = average_abundance, y = label, fill = status)) +
+    ggplot(plot_df, aes(x = average_abundance, 
+                        y = plot_label, 
+                        fill = status)) +
       geom_col(position = dodge) +
       geom_errorbarh(
         aes(
@@ -1134,43 +1379,150 @@ server <- function(input, output, session) {
     req(input$bioregion)
     req(input[[metric_year_input_id("bioregion", "total_abundance", "left")]])
     
+    # make_top_abundance_bioregion_status_year_plot(
+    #   bioregion_name = input$bioregion,
+    #   selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "left")]],
+    #   number_species = input$bioregion_number_species,
+    #   title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "left")]]
+    # )
+    
     make_top_abundance_bioregion_status_year_plot(
       bioregion_name = input$bioregion,
-      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "left")]],
+      
+      selected_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]],
+      
+      comparison_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]],
+      
       number_species = input$bioregion_number_species,
-      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "left")]]
+      
+      title_lab =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]]
     )
+    
   })
   
   output[[metric_plot_id("bioregion", "total_abundance", "right_year_status")]] <- renderPlot({
     req(input$bioregion)
     req(input[[metric_year_input_id("bioregion", "total_abundance", "right")]])
     
+    # make_top_abundance_bioregion_status_year_plot(
+    #   bioregion_name = input$bioregion,
+    #   selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+    #   number_species = input$bioregion_number_species,
+    #   title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+    # )
+    
     make_top_abundance_bioregion_status_year_plot(
       bioregion_name = input$bioregion,
-      selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
+      
+      selected_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]],
+      
+      comparison_year =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "left"
+          )
+        ]],
+      
       number_species = input$bioregion_number_species,
-      title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+      
+      title_lab =
+        input[[
+          metric_year_input_id(
+            "bioregion",
+            "total_abundance",
+            "right"
+          )
+        ]]
     )
+    
   })
   
-  
-  # CTI DIAGNOSTIC PLOTS ----
+  #   # CTI DIAGNOSTIC PLOTS ----
   make_top_cti_year_plot <- function(
     bioregion_name,
-    # selected_year,
-    # number_species = 10,
     title_lab = NULL
   ) {
     
     req(bioregion_name)
-    
     message(bioregion_name)
     message("CTI plots")
     
     df_raw <- nsw_bruv_data$cti_top_10 %>%
       dplyr::filter(bioregion == bioregion_name) %>%
       glimpse
+    
+    # Species that only occur in the top 10 for one year
+    message("view unique species CTI")
+    
+    unique_species <- df_raw %>%
+      dplyr::distinct(year, scientific) %>%
+      dplyr::count(scientific, name = "n_years") %>%
+      dplyr::filter(n_years == 1) %>%
+      dplyr::pull(scientific) %>%
+      glimpse()
+    
+    # Make bold if it is unique
+    df_raw <- df_raw %>%
+      dplyr::mutate(
+        
+        label = dplyr::case_when(
+          
+          scientific %in% unique_species &
+            !is.na(common) ~
+            paste0(
+              "***", sci, "***",
+              "<br>(",
+              common,
+              ")"
+            ),
+          
+          scientific %in% unique_species ~
+            paste0("***", sci, "***"),
+          
+          !is.na(common) ~
+            paste0(
+              "*", sci, "*",
+              "<br>(",
+              common,
+              ")"
+            ),
+          
+          TRUE ~
+            paste0("*", sci, "*")
+        )
+      )
+    
+    max_maxn <- max(df_raw$maxn) + max(df_raw$se)
     
     # choose the centering statistic
     mid_niche <- median(df_raw$rls_thermal_niche, na.rm = TRUE)
@@ -1194,7 +1546,15 @@ server <- function(input, output, session) {
         ),
         width = 0.2
       ) +
-      geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+      # geom_text(aes(y = 23, label = niche_lab), hjust = 0, size = 3) +
+          geom_text(
+            aes(
+              y = max_maxn + 1,
+              label = paste0(niche_lab, "\u00B0C")
+            ),
+            hjust = 0,
+            size = 3.5
+          ) +
       coord_flip(clip = "off") +
       facet_wrap(~year, scales = "free_y") +
       scale_x_reordered() +
@@ -1226,11 +1586,25 @@ server <- function(input, output, session) {
         x = "Species",
         y = expression(Log[10]~(Average~abundance~+~1))
       ) +
-      theme_bw() +
+      # theme_bw() +
       theme_classic() +
       theme(
-        # legend.position = "bottom",
-        axis.text.y = ggtext::element_markdown(size = 12)
+        
+        # Species labels
+        axis.text.y = ggtext::element_markdown(
+          size = 12
+        ),
+        
+        # Abundance-axis numbers
+        axis.text.x = element_text(
+          size = 13
+        ),
+        
+        # Year facet headings
+        strip.text = element_text(
+          size = 14,
+          face = "bold"
+        )
       )
   }
   
@@ -1238,10 +1612,7 @@ server <- function(input, output, session) {
     req(input$bioregion)
     
     make_top_cti_year_plot(
-      bioregion_name = input$bioregion#,
-      # selected_year  = input[[metric_year_input_id("bioregion", "total_abundance", "right")]],
-      # number_species = input$bioregion_number_species,
-      # title_lab      = input[[metric_year_input_id("bioregion", "total_abundance", "right")]]
+      bioregion_name = input$bioregion
     )
   })
   
@@ -2164,4 +2535,697 @@ server <- function(input, output, session) {
       selected_species = input[[metric_species_input_id("bioregion", "species")]]
     )
   })
+  
+  # make_species_length_plot <- function(
+  #   bioregion_name,
+  #   selected_species
+  # ) {
+  #   
+  #   req(bioregion_name, selected_species)
+  #   
+  #   df <- nsw_bruv_data$species_length_data %>%
+  #     dplyr::filter(
+  #       bioregion %in% bioregion_name,
+  #       display_name %in% selected_species
+  #     )
+  #   
+  #   validate(
+  #     need(
+  #       nrow(df) > 0,
+  #       paste("No length measurements available for", selected_species)
+  #     )
+  #   )
+  #   
+  #   ggplot(
+  #     df,
+  #     aes(
+  #       x = length_mm,
+  #       fill = status,
+  #       weight = count
+  #     )
+  #   ) +
+  #     
+  #     geom_histogram(
+  #       bins = 30,
+  #       position = "identity",
+  #       alpha = 0.65,
+  #       colour = "white",
+  #       linewidth = 0.2
+  #     ) +
+  #     
+  #     scale_fill_manual(
+  #       values = c(
+  #         "Fished"  = "#A9173A",
+  #         "No-Take" = "#67C7BB"
+  #       )
+  #     ) +
+  #     
+  #     scale_x_continuous(
+  #       expand = expansion(mult = c(0.01, 0.02))
+  #     ) +
+  #     
+  #     labs(
+  #       x = "Fish length (mm)",
+  #       y = "Number of fish measured",
+  #       fill = NULL
+  #     ) +
+  #     
+  #     theme_minimal(base_size = 16) +
+  #     
+  #     theme(
+  #       legend.position = "bottom",
+  #       panel.grid.minor = element_blank()
+  #     )
+  # }
+  # 
+  # output[[
+  #   metric_plot_id(
+  #     "bioregion",
+  #     "species",
+  #     "length"
+  #   )
+  # ]] <- renderPlot({
+  #   
+  #   req(
+  #     input$bioregion,
+  #     input[[metric_species_input_id("bioregion", "species")]]
+  #   )
+  #   
+  #   make_species_length_plot(
+  #     bioregion_name = input$bioregion,
+  #     selected_species =
+  #       input[[metric_species_input_id("bioregion", "species")]]
+  #   )
+  # })
+  
+  make_species_length_plot <- function(
+    bioregion_name,
+    selected_species,
+    facet_by_year = FALSE
+  ) {
+    
+    req(
+      bioregion_name,
+      selected_species
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Filter data
+    # ---------------------------------------------------------
+    
+    df <- nsw_bruv_data$species_length_data %>%
+      dplyr::filter(
+        bioregion == bioregion_name,
+        display_name == selected_species
+      ) %>%
+      dplyr::filter(
+        !is.na(length_mm),
+        !is.na(status)
+      ) %>%
+      dplyr::mutate(
+        year = factor(
+          year,
+          levels = sort(unique(year))
+        )
+      )
+    
+    
+    validate(
+      need(
+        nrow(df) > 0,
+        paste(
+          "No length measurements available for",
+          selected_species
+        )
+      )
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Base plot
+    # ---------------------------------------------------------
+    
+    p <- ggplot(
+      df,
+      aes(
+        x = length_mm,
+        fill = status,
+        weight = count
+      )
+    ) +
+      
+      geom_histogram(
+        binwidth = 25,
+        boundary = 0,
+        position = "identity",
+        alpha = 0.65,
+        colour = "white",
+        linewidth = 0.2
+      ) +
+      
+      scale_fill_manual(
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        ),
+        drop = FALSE
+      ) +
+      
+      scale_x_continuous(
+        expand = expansion(
+          mult = c(0.01, 0.02)
+        )
+      ) +
+      
+      labs(
+        x = "Fish length (mm)",
+        y = "Number of fish measured",
+        fill = NULL
+      ) +
+      
+      theme_minimal(
+        base_size = 16
+      ) +
+      
+      theme(
+        legend.position = "bottom",
+        panel.grid.minor = element_blank()
+      )
+    
+    
+    # ---------------------------------------------------------
+    # Optional facets
+    # ---------------------------------------------------------
+    
+    if (isTRUE(facet_by_year)) {
+      
+      p <- p +
+        facet_wrap(
+          ~ year,
+          ncol = 3
+        ) +
+        theme(
+          strip.text = element_text(
+            size = 14,
+            face = "bold"
+          )
+        )
+    }
+    
+    
+    p
+  }
+  
+  output[[
+    metric_species_length_ui_id(
+      "bioregion",
+      "species"
+    )
+  ]] <- renderUI({
+    
+    req(
+      input$bioregion,
+      input[[
+        metric_species_input_id(
+          "bioregion",
+          "species"
+        )
+      ]]
+    )
+    
+    
+    selected_species <- input[[
+      metric_species_input_id(
+        "bioregion",
+        "species"
+      )
+    ]]
+    
+    
+    facet_by_year <- isTRUE(
+      input[[
+        metric_species_length_facet_id(
+          "bioregion",
+          "species"
+        )
+      ]]
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Calculate dynamic height
+    # ---------------------------------------------------------
+    
+    if (facet_by_year) {
+      
+      n_years <- nsw_bruv_data$species_length_data %>%
+        dplyr::filter(
+          bioregion == input$bioregion,
+          display_name == selected_species
+        ) %>%
+        dplyr::distinct(year) %>%
+        nrow()
+      
+      
+      n_rows <- max(
+        1,
+        ceiling(n_years / 3)
+      )
+      
+      
+      # 375 px per row of facets
+      plot_height <- 375 * n_rows
+      
+    } else {
+      
+      # Normal non-faceted histogram
+      plot_height <- 500
+    }
+    
+    
+    metric_plotOutput(
+      prefix = "bioregion",
+      metric_id = "species",
+      which = "length",
+      height = plot_height
+    )
+  })
+  
+  output[[
+    metric_plot_id(
+      "bioregion",
+      "species",
+      "length"
+    )
+  ]] <- renderPlot({
+    
+    req(
+      input$bioregion,
+      input[[
+        metric_species_input_id(
+          "bioregion",
+          "species"
+        )
+      ]]
+    )
+    
+    
+    selected_species <- input[[
+      metric_species_input_id(
+        "bioregion",
+        "species"
+      )
+    ]]
+    
+    
+    facet_by_year <- isTRUE(
+      input[[
+        metric_species_length_facet_id(
+          "bioregion",
+          "species"
+        )
+      ]]
+    )
+    
+    
+    make_species_length_plot(
+      bioregion_name = input$bioregion,
+      selected_species = selected_species,
+      facet_by_year = facet_by_year
+    )
+  })
+  
+  # ABUNDANCE AND BIOMASS DIAGNOSTIC PLOTS ----
+  # make_ab_diagnostic_plot <- function(
+  #   metric_id,
+  #   bioregion_name
+  # ) {
+  #   
+  #   req(metric_id, bioregion_name)
+  #   
+  #   df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+  #     dplyr::filter(
+  #       bioregion == bioregion_name,
+  #       metric == metric_id
+  #     )
+  #   
+  #   validate(
+  #     need(
+  #       nrow(df) > 0,
+  #       paste("No diagnostic data available for", bioregion_name)
+  #     )
+  #   )
+  #   
+  #   
+  #   # ---------------------------------------------------------
+  #   # Species occurring in the top 10 in ONLY ONE year
+  #   # ---------------------------------------------------------
+  #   
+  #   unique_species <- df %>%
+  #     dplyr::distinct(year, scientific) %>%
+  #     dplyr::count(scientific, name = "n_years") %>%
+  #     dplyr::filter(n_years == 1) %>%
+  #     dplyr::pull(scientific)
+  #   
+  #   
+  #   # ---------------------------------------------------------
+  #   # Prepare labels and within-facet ordering
+  #   # ---------------------------------------------------------
+  #   
+  #   plot_df <- df %>%
+  #     dplyr::group_by(year, scientific) %>%
+  #     dplyr::mutate(
+  #       order_value = mean(value, na.rm = TRUE)
+  #     ) %>%
+  #     dplyr::ungroup() %>%
+  #     dplyr::mutate(
+  #       
+  #       # Scientific name only
+  #       species_label = paste(genus, species),
+  #       
+  #       # Bold species that are unique to one year's top 10.
+  #       # All scientific names are italicised.
+  #       species_label = dplyr::if_else(
+  #         scientific %in% unique_species,
+  #         paste0("***", species_label, "***"),
+  #         paste0("*", species_label, "*")
+  #       ),
+  #       
+  #       species_label = tidytext::reorder_within(
+  #         species_label,
+  #         order_value,
+  #         year
+  #       )
+  #     )
+  #   
+  #   
+  #   # Axis label
+  #   x_lab <- dplyr::case_when(
+  #     metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
+  #     metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
+  #     metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
+  #     metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)"
+  #   )
+  #   
+  #   
+  #   dodge <- position_dodge(width = 0.75)
+  #   
+  #   
+  #   ggplot(
+  #     plot_df,
+  #     aes(
+  #       x = value,
+  #       y = species_label,
+  #       fill = status
+  #     )
+  #   ) +
+  #     
+  #     geom_col(
+  #       position = dodge,
+  #       width = 0.7,
+  #       colour = "black",
+  #       linewidth = 0.3
+  #     ) +
+  #     
+  #     geom_errorbarh(
+  #       aes(
+  #         xmin = pmax(value - se, 0),
+  #         xmax = value + se
+  #       ),
+  #       position = dodge,
+  #       height = 0.2
+  #     ) +
+  #     
+  #     facet_wrap(
+  #       ~year,
+  #       scales = "free_y"
+  #     ) +
+  #     
+  #     tidytext::scale_y_reordered() +
+  #     
+  #     # Similar appearance to your example
+  #     scale_fill_manual(
+  #       values = c(
+  #         "Fished" = "white",
+  #         "No-Take" = "grey50"
+  #       ),
+  #       drop = FALSE
+  #     ) +
+  #     
+  #     # Similar log-like axis to the example, but can still display zero
+  #     scale_x_continuous(
+  #       trans = scales::pseudo_log_trans(base = 10),
+  #       expand = expansion(mult = c(0, 0.08))
+  #     ) +
+  #     
+  #     labs(
+  #       x = x_lab,
+  #       y = NULL,
+  #       fill = "Status"
+  #     ) +
+  #     
+  #     theme_classic(base_size = 14) +
+  #     
+  #     theme(
+  #       strip.background = element_rect(
+  #         fill = "grey85",
+  #         colour = "black"
+  #       ),
+  #       strip.text = element_text(
+  #         size = 13
+  #       ),
+  #       axis.text.y = ggtext::element_markdown(
+  #         size = 11
+  #       ),
+  #       legend.position = "right"
+  #     )
+  # }
+  # 
+  # NEW FUNCTION ----
+  make_ab_diagnostic_plot <- function(
+    metric_id,
+    bioregion_name
+  ) {
+    
+    req(metric_id, bioregion_name)
+    
+    df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+      dplyr::filter(
+        bioregion == bioregion_name,
+        metric == metric_id
+      )
+    
+    validate(
+      need(
+        nrow(df) > 0,
+        paste("No diagnostic data available for", bioregion_name)
+      )
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Identify species that only occur in the top 10 in one year
+    # ---------------------------------------------------------
+    
+    unique_species <- df %>%
+      dplyr::distinct(year, scientific) %>%
+      dplyr::count(scientific, name = "n_years") %>%
+      dplyr::filter(n_years == 1) %>%
+      dplyr::pull(scientific)
+    
+    
+    # ---------------------------------------------------------
+    # Prepare plot data
+    # ---------------------------------------------------------
+    
+    plot_df <- df %>%
+      
+      # Order species using mean across Fished / No-Take
+      dplyr::group_by(year, scientific) %>%
+      dplyr::mutate(
+        order_value = mean(value, na.rm = TRUE)
+      ) %>%
+      dplyr::ungroup() %>%
+      
+      dplyr::mutate(
+        
+        # species_label = paste(genus, species),
+        # 
+        # # Bold + italic if unique to that year's top 10
+        # species_label = dplyr::if_else(
+        #   scientific %in% unique_species,
+        #   paste0("***", species_label, "***"),
+        #   paste0("*", species_label, "*")
+        # ),
+        
+        sci_label = paste(
+          genus,
+          species
+        ),
+        
+        species_label = dplyr::case_when(
+          
+          scientific %in% unique_species &
+            !is.na(australian_common_name) ~
+            paste0(
+              "***", sci_label, "***",
+              "<br>(",
+              australian_common_name,
+              ")"
+            ),
+          
+          scientific %in% unique_species ~
+            paste0(
+              "***",
+              sci_label,
+              "***"
+            ),
+          
+          !is.na(australian_common_name) ~
+            paste0(
+              "*", sci_label, "*",
+              "<br>(",
+              australian_common_name,
+              ")"
+            ),
+          
+          TRUE ~
+            paste0(
+              "*",
+              sci_label,
+              "*"
+            )
+        ),
+        
+        species_label = tidytext::reorder_within(
+          species_label,
+          order_value,
+          year
+        ),
+        
+        # Order separately within each year
+        species_label = tidytext::reorder_within(
+          species_label,
+          order_value,
+          year
+        )
+      )
+    
+    
+    # ---------------------------------------------------------
+    # Axis label
+    # ---------------------------------------------------------
+    
+    x_lab <- dplyr::case_when(
+      metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
+      metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
+      metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
+      metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)",
+      metric_id == "alt" ~ "Average abundance LT per BRUV",
+      metric_id == "blt" ~ "Average biomass LT per BRUV (kg)"
+    )
+    
+    
+    # ---------------------------------------------------------
+    # Plot
+    # ---------------------------------------------------------
+    
+    dodge <- position_dodge(width = 0.75)
+    
+    ggplot(
+      plot_df,
+      aes(
+        x = value,
+        y = species_label,
+        fill = status
+      )
+    ) +
+      
+      geom_col(
+        position = dodge
+      ) +
+      
+      geom_errorbarh(
+        aes(
+          xmin = pmax(value - se, 0),
+          xmax = value + se
+        ),
+        position = dodge,
+        height = 0.3
+      ) +
+      
+      facet_wrap(
+        ~year,
+        scales = "free_y"
+      ) +
+      
+      tidytext::scale_y_reordered() +
+      
+      # Same colours as other dashboard species plots
+      scale_fill_manual(
+        values = c(
+          "Fished"  = "#A9173A",
+          "No-Take" = "#67C7BB"
+        )
+      ) +
+      
+      # Same x-axis style as existing bar plots
+      # scale_x_continuous(
+      #   expand = expansion(mult = c(0, 0.05))
+      # ) +
+      
+          scale_x_continuous(
+            trans = scales::pseudo_log_trans(base = 10),
+            expand = expansion(mult = c(0, 0.08))
+          ) +
+      
+      labs(
+        x = x_lab,
+        y = NULL,
+        fill = NULL
+      ) +
+      
+      # Same theme as existing bar plots
+      theme_classic() +
+      
+      theme(
+        legend.position = "bottom",
+        axis.text.y = ggtext::element_markdown(size = 12),
+        
+        # Keep facet headers simple
+        strip.background = element_blank(),
+        strip.text = element_text(
+          size = 12,
+          face = "bold"
+        )
+      )
+  }
+  
+  # MAKE PLOTS -----
+  for (id in c("a20", "b20", "a30", "b30", "alt", "blt")) {
+    
+    local({
+      
+      metric_id <- id
+      
+      output[[
+        metric_plot_id(
+          "bioregion",
+          metric_id,
+          "diagnostic"
+        )
+      ]] <- renderPlot({
+        
+        req(input$bioregion)
+        
+        make_ab_diagnostic_plot(
+          metric_id = metric_id,
+          bioregion_name = input$bioregion
+        )
+        
+      })
+      
+    })
+  }
 }
