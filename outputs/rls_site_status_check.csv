@@ -1,0 +1,234 @@
+site_code,site_name,area,location,latitude_dd,longitude_dd,precise_coordinates,bioregion,dist_to_sanctuary_m,status
+BMP-S10,Shark Gutter NE Tollgates,New South Wales,Batemans,-35.75,150.26,TRUE,Batemans Shelf,0,No-Take
+BMP-S11,Tollgates Outer Mid Bay,New South Wales,Batemans,-35.738571428571426,150.26571428571427,TRUE,Batemans Shelf,0,No-Take
+BMP-S15,Burrewarra Point,New South Wales,Batemans,-35.83,150.23,TRUE,Batemans Shelf,0,No-Take
+BMP-S16,Jimmies Island,New South Wales,Batemans,-35.82,150.23,TRUE,Batemans Shelf,0,No-Take
+BMP-S24,Bingi Bingi Point Nth,New South Wales,Batemans,-36.01,150.17,TRUE,Batemans Shelf,0,No-Take
+BMP-S25,Bingi Bingi Point,New South Wales,Batemans,-36.01,150.17,TRUE,Batemans Shelf,0,No-Take
+BMP-S32,Bogola Point,New South Wales,Batemans,-36.26,150.15,TRUE,Batemans Shelf,0,No-Take
+BMP-S33,Bogola North,New South Wales,Batemans,-36.26,150.15,TRUE,Batemans Shelf,0,No-Take
+BMP1,Guerilla Bay Island South,New South Wales,Batemans,-35.83,150.23,TRUE,Batemans Shelf,0,No-Take
+BMP11,Shag Rock N,New South Wales,Batemans,-35.98,150.16,FALSE,Batemans Shelf,0,No-Take
+BMP15,Guerilla Bay Bommie,New South Wales,Batemans,-35.83,150.23,FALSE,Batemans Shelf,0,No-Take
+BMP16,Jimmies Is SW,New South Wales,Batemans,-35.82,150.23,FALSE,Batemans Shelf,0,No-Take
+BMP19,West Tollgate Is,New South Wales,Batemans,-35.75,150.26,FALSE,Batemans Shelf,0,No-Take
+BMP20,Honeysuckle Bay S,New South Wales,Batemans,-35.72,150.28,FALSE,Batemans Shelf,0,No-Take
+BMP23,Black Rock North,New South Wales,Batemans,-35.77,150.25,FALSE,Batemans Shelf,0,No-Take
+BMP24,Burrewarra Point NW,New South Wales,Batemans,-35.83,150.23,TRUE,Batemans Shelf,0,No-Take
+BMP31,Fullers,New South Wales,Batemans,-36.26,150.15,FALSE,Batemans Shelf,0,No-Take
+JBMP47,Seal Colony,New South Wales,Jervis Bay,-35.09,150.81,FALSE,Batemans Shelf,0,No-Take
+JBMP55,St George's Point,New South Wales,Jervis Bay,-35.2,150.7,FALSE,Batemans Shelf,0,No-Take
+BMP-S26,Mullimburra Point,New South Wales,Batemans,-35.99,150.16,FALSE,Batemans Shelf,1,Fished
+BMP10,Shag Rock E,New South Wales,Batemans,-35.99,150.16,FALSE,Batemans Shelf,1,Fished
+BMP26,Shag Rock SW,New South Wales,Batemans,-35.99,150.16,TRUE,Batemans Shelf,1,Fished
+BMP9,Mullimburra point off fishing spot,New South Wales,Batemans,-35.99,150.16,FALSE,Batemans Shelf,1,Fished
+BMP-S19,North Head,New South Wales,Batemans,-35.72,150.27,FALSE,Batemans Shelf,11,Fished
+BMP-S1,Brush Island Mid North,New South Wales,Batemans,-35.53,150.42,FALSE,Batemans Shelf,16,Fished
+BMP-S2,Brush Island Mid South,New South Wales,Batemans,-35.53,150.42,FALSE,Batemans Shelf,16,Fished
+BMP-S34,Brush Island South,New South Wales,Batemans,-35.53,150.42,FALSE,Batemans Shelf,16,Fished
+BMP-S39,Brush Island East,New South Wales,Batemans,-35.53,150.42,FALSE,Batemans Shelf,16,Fished
+BMP-S30,Montague Is East,New South Wales,Batemans,-36.25,150.23,FALSE,Batemans Shelf,46,Fished
+BMP-S9,Montague Island North,New South Wales,Batemans,-36.25,150.23,FALSE,Batemans Shelf,46,Fished
+BMP-S12,Broulee Island,New South Wales,Batemans,-35.86,150.19,FALSE,Batemans Shelf,48,Fished
+BMP-S37,Broulee Is South,New South Wales,Batemans,-35.86,150.19,FALSE,Batemans Shelf,48,Fished
+BMP29,Broulee Headland East,New South Wales,Batemans,-35.86,150.19,FALSE,Batemans Shelf,48,Fished
+BMP-S17,Pretty Point,New South Wales,Batemans,-35.81666666666667,150.23,TRUE,Batemans Shelf,55,Fished
+JBMP-S2,The Docks 1 The Gulch,New South Wales,Jervis Bay,-35.08,150.8,TRUE,Batemans Shelf,85,Fished
+JBMP13,Tubes JB,New South Wales,Jervis Bay,-35.08,150.8,FALSE,Batemans Shelf,85,Fished
+BMP17,Jimmies Is S,New South Wales,Batemans,-35.82,150.24,FALSE,Batemans Shelf,89,Fished
+BMP14,Burrewarra Pt S,New South Wales,Batemans,-35.83,150.22,FALSE,Batemans Shelf,102,Fished
+BMP32,Whale Bay,New South Wales,Batemans,-35.83,150.22,FALSE,Batemans Shelf,102,Fished
+BMP-S35,Brush Island South West,New South Wales,Batemans,-35.53,150.41,FALSE,Batemans Shelf,146,Fished
+JBMP38,South Bowen,New South Wales,Jervis Bay,-35.12,150.77,FALSE,Batemans Shelf,148,Fished
+JBMP41,White Pointer Swimthrus,New South Wales,Jervis Bay,-35.12,150.77,FALSE,Batemans Shelf,148,Fished
+JBMP57,North Steamer's Head,New South Wales,Jervis Bay,-35.18,150.74,FALSE,Batemans Shelf,151,Fished
+BMP-S36,Honeysuckle Bay,New South Wales,Batemans,-35.71,150.28,FALSE,Batemans Shelf,154,Fished
+BMP-S14,West Longnose Point,New South Wales,Batemans,-35.83,150.21,TRUE,Batemans Shelf,186,Fished
+JBMP-S22,Drum and Drumstick,New South Wales,Jervis Bay,-35.05,150.84,FALSE,Batemans Shelf,190,Fished
+JBMP24,Drum Inlet,New South Wales,Jervis Bay,-35.05,150.84,FALSE,Batemans Shelf,190,Fished
+JBMP26,Drum & Drum Sticks,New South Wales,Jervis Bay,-35.05,150.84,FALSE,Batemans Shelf,190,Fished
+BMP-S6,Kiola Gulch,New South Wales,Batemans,-35.61,150.34,FALSE,Batemans Shelf,357,Fished
+BMP-S13,Broulee North,New South Wales,Batemans,-35.85,150.19,TRUE,Batemans Shelf,383,Fished
+NSW51,Steamers,New South Wales,Jervis Bay,-35.18,150.71,FALSE,Batemans Shelf,388,Fished
+JBMP-S26,Outer Tubes,New South Wales,Jervis Bay,-35.09,150.8,TRUE,Batemans Shelf,404,Fished
+JBMP-S16,Bowens Island SW,New South Wales,Jervis Bay,-35.12,150.76,TRUE,Batemans Shelf,565,Fished
+JBMP51,The Gap,New South Wales,Jervis Bay,-35.12,150.76,FALSE,Batemans Shelf,565,Fished
+BMP-S31,Montague Island South West,New South Wales,Batemans,-36.26,150.22,FALSE,Batemans Shelf,610,Fished
+BMP-S7,Montague Island mid inner,New South Wales,Batemans,-36.25,150.22,FALSE,Batemans Shelf,687,Fished
+BMP21,Montague Is W (S of the Pinnacle),New South Wales,Batemans,-36.25,150.22,FALSE,Batemans Shelf,687,Fished
+JBMP35,Dolphin Cove,New South Wales,Jervis Bay,-35.13,150.77,FALSE,Batemans Shelf,702,Fished
+JBMP36,Governors Head,New South Wales,Jervis Bay,-35.13,150.77,FALSE,Batemans Shelf,702,Fished
+BMP-S5,Durras Mountain,New South Wales,Batemans,-35.6,150.34,FALSE,Batemans Shelf,793,Fished
+BMP6,Potato Point shark gutter,New South Wales,Batemans,-36.1,150.15,FALSE,Batemans Shelf,843,Fished
+BMP-S18,Yellow Rock,New South Wales,Batemans,-35.73,150.26,TRUE,Batemans Shelf,892,Fished
+BMP-S4,Snapper Point,New South Wales,Batemans,-35.57,150.37,FALSE,Batemans Shelf,922,Fished
+BMP33,Barlings Island,New South Wales,Batemans,-35.83,150.2,FALSE,Batemans Shelf,981,Fished
+NSW29,Western Big Seal Rock,New South Wales,Port Stephens - North,-32.46,152.55,FALSE,Manning Shelf,0,No-Take
+NSW58,Little Seal Rock,New South Wales,Port Stephens - North,-32.47,152.55,FALSE,Manning Shelf,0,No-Take
+PS22,Boondelbah Island North,New South Wales,Port Stephens,-32.7,152.23,TRUE,Manning Shelf,0,No-Take
+PS24,Cabbage Tree Island North East,New South Wales,Port Stephens,-32.69,152.23,FALSE,Manning Shelf,0,No-Take
+PS31,Cabbage Tree Island East,New South Wales,Port Stephens,-32.69,152.23,FALSE,Manning Shelf,0,No-Take
+PS34,Cabbage Tree N2,New South Wales,Port Stephens,-32.68,152.23,FALSE,Manning Shelf,0,No-Take
+PS53,Looking Glass,New South Wales,Port Stephens,-32.63,152.32,FALSE,Manning Shelf,0,No-Take
+PS44,Fingal Island Sanctuary,New South Wales,Port Stephens,-32.75,152.19,FALSE,Manning Shelf,72,Fished
+NSW31,Sawtooth Rocks,New South Wales,Port Stephens - North,-32.45,152.54,TRUE,Manning Shelf,88,Fished
+PS2,Nth Shark Gutters,New South Wales,Port Stephens,-32.62,152.33,FALSE,Manning Shelf,136,Fished
+PS6,Elephant Rock,New South Wales,Port Stephens,-32.62,152.33,FALSE,Manning Shelf,136,Fished
+PS12,Zenith Beach,New South Wales,Port Stephens,-32.72,152.19,FALSE,Manning Shelf,162,Fished
+NSW23,Latitude Reef,New South Wales,Port Stephens - North,-32.21,152.57,FALSE,Manning Shelf,178,Fished
+PS3,Cabbage Tree Island West,New South Wales,Port Stephens,-32.69,152.22,TRUE,Manning Shelf,266,Fished
+PS35,Coral Gardens,New South Wales,Port Stephens,-32.68,152.22,TRUE,Manning Shelf,316,Fished
+PS54,Cod Rock,New South Wales,Port Stephens,-32.63,152.31,FALSE,Manning Shelf,383,Fished
+PS8,Fingal Island South,New South Wales,Port Stephens,-32.75,152.18,FALSE,Manning Shelf,461,Fished
+PS52,Esmeralda Cove,New South Wales,Port Stephens,-32.62,152.32,FALSE,Manning Shelf,566,Fished
+PS50,Coal Shaft Bay,New South Wales,Port Stephens,-32.62,152.31,FALSE,Manning Shelf,588,Fished
+PS32,Fingal Is- North East,New South Wales,Port Stephens,-32.74,152.2,FALSE,Manning Shelf,693,Fished
+PS36,Shark Island West,New South Wales,Port Stephens,-32.74,152.2,FALSE,Manning Shelf,693,Fished
+PS38,Lighthouse Bay,New South Wales,Port Stephens,-32.74,152.2,FALSE,Manning Shelf,693,Fished
+PS4,Governers Wharf (Fingal Island),New South Wales,Port Stephens,-32.74,152.19,TRUE,Manning Shelf,883,Fished
+PS42,Fingal Island West,New South Wales,Port Stephens,-32.74,152.19,FALSE,Manning Shelf,883,Fished
+PS30,Boondlebah Island Gutter,New South Wales,Port Stephens,-32.71,152.23,TRUE,Manning Shelf,965,Fished
+PS41,Boondlebah Island West,New South Wales,Port Stephens,-32.71,152.23,FALSE,Manning Shelf,965,Fished
+CBMP1,Anemone mooring Julien Rocks,New South Wales,Byron,-28.61,153.63,TRUE,Tweed-Moreton,0,No-Take
+CBMP2,Elwoods Mooring Julien Rocks,New South Wales,Byron,-28.61,153.63,FALSE,Tweed-Moreton,0,No-Take
+SI1,Elbow Cave Mooring N Solitary Is,New South Wales,Solitary Islands,-29.93,153.39,FALSE,Tweed-Moreton,0,No-Take
+SI13,South End Nth Solitary,New South Wales,Solitary Islands,-29.93,153.39,FALSE,Tweed-Moreton,0,No-Take
+SI19,SW Solitary,New South Wales,Solitary Islands,-30.16,153.23,TRUE,Tweed-Moreton,0,No-Take
+SI20,Unnamed Reef Mooring NW Solitary Is,New South Wales,Solitary Islands,-30.02,153.27,FALSE,Tweed-Moreton,0,No-Take
+SI21,Surgeons Reef,New South Wales,Solitary Islands,-30.02,153.27,TRUE,Tweed-Moreton,0,No-Take
+SI23,Canyons North Solitary,New South Wales,Solitary Islands,-29.93,153.39,FALSE,Tweed-Moreton,0,No-Take
+SI24,Mattys Mooring NW Solitary Is,New South Wales,Solitary Islands,-30.02,153.27,FALSE,Tweed-Moreton,0,No-Take
+SI25,SW Solitary North Mooring,New South Wales,Solitary Islands,-30.16,153.23,TRUE,Tweed-Moreton,0,No-Take
+SI6,Manta Mooring NW Solitary Is,New South Wales,Solitary Islands,-30.02,153.27,TRUE,Tweed-Moreton,0,No-Take
+SI9,Turtle cove,New South Wales,Solitary Islands,-30.24,153.18,FALSE,Tweed-Moreton,12,Fished
+SI29,Red Rock Estuary,New South Wales,Solitary Islands,-29.98,153.23,FALSE,Tweed-Moreton,26,Fished
+CBMP3,The Wreck Main Beach,New South Wales,Byron,-28.64,153.61,FALSE,Tweed-Moreton,144,Fished
+SI14,Fish Soup,New South Wales,Solitary Islands,-29.91,153.38,FALSE,Tweed-Moreton,277,Fished
+SI16,Eastern Bay Sth Solitary,New South Wales,Solitary Islands,-30.2,153.27,FALSE,Tweed-Moreton,284,Fished
+SI17,Cleaner Station,New South Wales,Solitary Islands,-30.2,153.27,FALSE,Tweed-Moreton,284,Fished
+SI18,Manta Arch,New South Wales,Solitary Islands,-30.2,153.27,FALSE,Tweed-Moreton,284,Fished
+SI4,North Boulder Wall S Solitary Is,New South Wales,Solitary Islands,-30.2,153.27,FALSE,Tweed-Moreton,284,Fished
+SI7,South Boulder Wall,New South Wales,Solitary Islands,-30.2,153.27,FALSE,Tweed-Moreton,284,Fished
+SI2,Anemone Bay N Solitary Is,New South Wales,Solitary Islands,-29.92,153.39,TRUE,Tweed-Moreton,320,Fished
+SI11,Cable Trail,New South Wales,Solitary Islands,-30.21,153.27,FALSE,Tweed-Moreton,418,Fished
+SI8,Buchanans Wall,New South Wales,Solitary Islands,-30.21,153.27,FALSE,Tweed-Moreton,418,Fished
+SI3,The Gantry S Solitary Is,New South Wales,Solitary Islands,-30.21,153.26,TRUE,Tweed-Moreton,515,Fished
+SI15,Black Rock,New South Wales,Solitary Islands,-30.2,153.26,FALSE,Tweed-Moreton,531,Fished
+SI12,Split Solitary East,New South Wales,Solitary Islands,-30.24,153.19,TRUE,Tweed-Moreton,813,Fished
+JBMP-S1,Captains Pt,New South Wales,Jervis Bay,-35.12,150.71,TRUE,NA,0,No-Take
+JBMP-S11,Greenfield Beach Nth,New South Wales,Jervis Bay,-35.09,150.7,TRUE,NA,0,No-Take
+JBMP-S14,GREEN POINT (GREEN ISLAND),New South Wales,Jervis Bay,-35.02,150.76,FALSE,NA,0,No-Take
+JBMP-S20,Husky Caravan Park,New South Wales,Jervis Bay,-35.04,150.68,FALSE,NA,0,No-Take
+JBMP-S21,Tapalla Point (Husky Reef),New South Wales,Jervis Bay,-35.04,150.68,FALSE,NA,0,No-Take
+JBMP-S9,Hyams Beach (Chinamans Reef),New South Wales,Jervis Bay,-35.1,150.7,FALSE,NA,0,No-Take
+JBMP62,Captains Point East,New South Wales,Jervis Bay,-35.12,150.71,FALSE,NA,0,No-Take
+PS17,Fly Point Nelson Bay,New South Wales,Port Stephens,-32.71,152.15,TRUE,NA,0,No-Take
+PS20,Halifax Park,New South Wales,Port Stephens,-32.71,152.16,TRUE,NA,23,Fished
+PS21,Inner Light Rocks,New South Wales,Port Stephens,-32.71,152.16,FALSE,NA,23,Fished
+PS7,Little Beach West,New South Wales,Port Stephens,-32.71,152.16,TRUE,NA,23,Fished
+JBMP-S12,Dart Point East (Grouper Coast South),New South Wales,Jervis Bay,-35.07,150.77,FALSE,NA,31,Fished
+JBMP-S5,Honeymoon Bay 1km Sth,New South Wales,Jervis Bay,-35.07,150.77,TRUE,NA,31,Fished
+JBMP21,Groper Coast North,New South Wales,Jervis Bay,-35.07,150.77,FALSE,NA,31,Fished
+JBMP-S6,Honeymoon Bay 300m South,New South Wales,Jervis Bay,-35.06,150.776,TRUE,NA,53,Fished
+JBMP-S3,The Docks 2 Inner Tubes,New South Wales,Jervis Bay,-35.08,150.79,TRUE,NA,130,Fished
+JBMP-S4,The Docks 3 North Black Boat Cove,New South Wales,Jervis Bay,-35.08,150.79,TRUE,NA,130,Fished
+JBMP16,Apollo Reef,New South Wales,Jervis Bay,-35.08,150.79,FALSE,NA,130,Fished
+JBMP17,Apollo Reef 2,New South Wales,Jervis Bay,-35.08,150.79,FALSE,NA,130,Fished
+JBMP11,Longnose Point Offshore,New South Wales,Jervis Bay,-35.08,150.77,FALSE,NA,167,Fished
+JBMP19,Groper coast,New South Wales,Jervis Bay,-35.08,150.77,FALSE,NA,167,Fished
+PS25,Jimmys Beach Barnes Rocks,New South Wales,Port Stephens,-32.68,152.16,FALSE,NA,179,Fished
+JBMP-S13,Montagu Point,New South Wales,Jervis Bay,-35.03,150.78,FALSE,NA,185,Fished
+JBMP10,Blenheim Beach,New South Wales,Jervis Bay,-35.09,150.69,FALSE,NA,244,Fished
+JBMP-S7,Honeymoon Bay 150 m North (Bindajine Point),New South Wales,Jervis Bay,-35.06,150.78,FALSE,NA,415,Fished
+JBMP23,Honeymoon Bay,New South Wales,Jervis Bay,-35.06,150.78,FALSE,NA,415,Fished
+JBMP46,Hyams Beach SZ,New South Wales,Jervis Bay,-35.1,150.69,TRUE,NA,419,Fished
+JBMP52,Hyams Beach HPZ,New South Wales,Jervis Bay,-35.1,150.69,FALSE,NA,419,Fished
+JBMP-S25,Plantation Point South,New South Wales,Jervis Bay,-35.07,150.7,FALSE,NA,564,Fished
+JBMP-S8,Plantation Point North,New South Wales,Jervis Bay,-35.07,150.7,FALSE,NA,564,Fished
+JBMP20,Plantation Point 2,New South Wales,Jervis Bay,-35.07,150.7,FALSE,NA,564,Fished
+PS16,Seahorse gardens,New South Wales,Port Stephens,-32.72,152.15,TRUE,NA,579,Fished
+JBMP-S10,Longnose Point North,New South Wales,Jervis Bay,-35.08,150.78,FALSE,NA,588,Fished
+JBMP-S27,Longnose Point South,New South Wales,Jervis Bay,-35.08,150.78,FALSE,NA,588,Fished
+JBMP14,Darts Point Cove,New South Wales,Jervis Bay,-35.08,150.78,FALSE,NA,588,Fished
+JBMP15,Longnose Point East,New South Wales,Jervis Bay,-35.08,150.78,FALSE,NA,588,Fished
+JBMP25,Dent Rock Deep,New South Wales,Jervis Bay,-35.07,150.69,TRUE,NA,1006,Fished
+PS13,Pipeline,New South Wales,Port Stephens,-32.72,152.14,TRUE,NA,1095,Fished
+JBMP22,Dent Rock,New South Wales,Jervis Bay,-35.07,150.685,TRUE,NA,1231,Fished
+JBMP-S18,Bristol Pt,New South Wales,Jervis Bay,-35.13,150.73,TRUE,NA,1283,Fished
+BMP-S20,Acron Ledge,New South Wales,Batemans,-35.72,150.25,FALSE,NA,1507,Fished
+PS40,Dutchies,New South Wales,Port Stephens,-32.72,152.13,TRUE,NA,1508,Fished
+JBMP34,Scottish Rocks,New South Wales,Jervis Bay,-35.13,150.74,TRUE,NA,1636,Fished
+JBMP-S19,Callala,New South Wales,Jervis Bay,-35.01,150.73,FALSE,NA,1645,Fished
+JBMP-S24,Callala Reef West,New South Wales,Jervis Bay,-35.01,150.72,FALSE,NA,1805,Fished
+JBMP49,Bristol Point East,New South Wales,Jervis Bay,-35.14,150.73,FALSE,NA,2375,Fished
+NSW53,Hyams Beach (inshore),New South Wales,Jervis Bay,-35.14,150.74,FALSE,NA,2603,Fished
+QLD6,Kirra Reef,Queensland,Gold Coast,-28.16,153.53,TRUE,NA,38220,Fished
+NSW60,Yallumgo,New South Wales,Eden,-37.07,149.91,FALSE,NA,75469,Fished
+NSW62,Shelley's Beach,New South Wales,Eden,-37.07,149.91,FALSE,NA,75469,Fished
+NSW7,Fanch beach house N,New South Wales,Eden,-37.07,149.91,FALSE,NA,75469,Fished
+NSW61,The Cannery,New South Wales,Eden,-37.07,149.9,FALSE,NA,75623,Fished
+NSW6,The Booth,New South Wales,Eden,-37.08,149.91,FALSE,NA,76560,Fished
+NSW5,Chip mill E of jetty,New South Wales,Eden,-37.1,149.93,FALSE,NA,78479,Fished
+NSW63,Navy Wharf Edrom,New South Wales,Eden,-37.11,149.93,TRUE,NA,79575,Fished
+NSW47,West Navy Jetty,New South Wales,Eden,-37.11,149.92,FALSE,NA,79700,Fished
+SYD13,Lilli Pilli Wall,New South Wales,Sydney,-34.07,151.11,TRUE,NA,105181,Fished
+SYD14,Shiprock Wall,New South Wales,Sydney,-34.07,151.13,FALSE,NA,105711,Fished
+SYD18,Bare Island South,New South Wales,Sydney,-33.99,151.23,FALSE,NA,117112,Fished
+SYD19,Bare Island,New South Wales,Sydney,-33.99,151.23,TRUE,NA,117112,Fished
+SYD20,Bare Island North,New South Wales,Sydney,-33.99,151.23,TRUE,NA,117112,Fished
+SYD67,Bare Island West Reef,New South Wales,Sydney,-33.99,151.23,FALSE,NA,117112,Fished
+SYD68,La Perouse Kelp Bed,New South Wales,Sydney,-33.99,151.23,FALSE,NA,117112,Fished
+CHMP-S7,Prince Wreck,Victoria,Cape Howe,-37.52,149.96,FALSE,NA,124419,Fished
+CHMP-S8,Iron Prince,Victoria,Cape Howe,-37.52,149.96,TRUE,NA,124419,Fished
+CHMP-S4,Gabo NE Gulch,Victoria,Cape Howe,-37.55,149.91,FALSE,NA,128082,Fished
+CHMP25,NW Gabo Island,Victoria,Cape Howe,-37.55,149.91,FALSE,NA,128082,Fished
+CHMP-S3,Gabo Boulder Bay,Victoria,Cape Howe,-37.56,149.92,FALSE,NA,129097,Fished
+CHMP-S9,Gabo Harbour,Victoria,Cape Howe,-37.56,149.91,TRUE,NA,129181,Fished
+CHMP24,Gabo Harbor West,Victoria,Cape Howe,-37.56,149.91,FALSE,NA,129181,Fished
+CHMP21,Monumental City Wreck,Victoria,Cape Howe,-37.56,149.84,FALSE,NA,129933,Fished
+CHMP23,Tullaberger Is. Sth.,Victoria,Cape Howe,-37.56,149.84,FALSE,NA,129933,Fished
+SYD2,Fort Denison,New South Wales,Sydney,-33.86,151.22,FALSE,NA,130532,Fished
+SYD7,Berrys Bay Point,New South Wales,Sydney,-33.85,151.19,FALSE,NA,130792,Fished
+SYD3,Clarke Island,New South Wales,Sydney,-33.86,151.24,FALSE,NA,131101,Fished
+SYD1,Kiribilly House,New South Wales,Sydney,-33.85,151.22,FALSE,NA,131595,Fished
+SYD5,Shark Island,New South Wales,Sydney,-33.86,151.26,FALSE,NA,131693,Fished
+SYD8,Shark Island SE,New South Wales,Sydney,-33.86,151.26,TRUE,NA,131693,Fished
+VIC10,Bastion Point Mallacoota,Victoria,Victoria - North east,-37.57,149.77,TRUE,NA,132063,Fished
+SYD4,Bradleys Heads,New South Wales,Sydney,-33.85,151.25,FALSE,NA,132450,Fished
+SYD9,Neilson Bay,New South Wales,Sydney,-33.85,151.26,FALSE,NA,132747,Fished
+VIC55,Tip Beach Reef,Victoria,Victoria - North east,-37.58,149.76,FALSE,NA,133317,Fished
+SYD30,Chowder Bay,New South Wales,Sydney,-33.84,151.25,FALSE,NA,133508,Fished
+SYD32,Clifton Gardens Wharf,New South Wales,Sydney,-33.84,151.25,FALSE,NA,133508,Fished
+SYD33,Chowder Bay Jetty,New South Wales,Sydney,-33.84,151.25,FALSE,NA,133508,Fished
+SYD10,Georges Head,New South Wales,Sydney,-33.84,151.26,TRUE,NA,133802,Fished
+SYD45,Dobroyd Head,New South Wales,Sydney,-33.81,151.27,TRUE,NA,134072,Fished
+VIC19,Betka River,Victoria,Victoria - North east,-37.59,149.74,FALSE,NA,134755,Fished
+SYD43,Grotto Point Lighthouse,New South Wales,Sydney,-33.82,151.26,FALSE,NA,135485,Fished
+SYD11,Barmoral Bay,New South Wales,Sydney,-33.82,151.25,FALSE,NA,135626,Fished
+VIC4,Mallacoota Airport W.,Victoria,Victoria - North east,-37.62,149.72,FALSE,NA,138366,Fished
+SYD12,Oak Park,New South Wales,Sydney,-34.07,152.16,TRUE,NA,145342,Fished
+PHMP23,Kerangie Bay,Victoria,Point Hicks,-37.8,149.27,FALSE,NA,169798,Fished
+PHMP24,Saros,Victoria,Point Hicks,-37.8,149.27,FALSE,NA,169798,Fished
+BR9,East Pearl Point,Victoria,Beware Reef,-37.79,148.9,FALSE,NA,184702,Fished
+BR8,Pearl Point,Victoria,Beware Reef,-37.79,148.89,FALSE,NA,185195,Fished
+BR26,Pearl Point Kelp Beds,Victoria,Beware Reef,-37.79,148.88,FALSE,NA,185690,Fished
+BR12,Outer East Yeerung Reef,Victoria,Beware Reef,-37.8,148.79,FALSE,NA,191173,Fished
+BR2,East Yeerung,Victoria,Beware Reef,-37.8,148.79,FALSE,NA,191173,Fished
+BR25,West Yeerung Beach,Victoria,Beware Reef,-37.8,148.76,FALSE,NA,192746,Fished
+BR13,Seal Gully,Victoria,Beware Reef,-37.82,148.79,TRUE,NA,192963,Fished
+BR4,Nth Pinnacle,Victoria,Beware Reef,-37.82,148.79,FALSE,NA,192963,Fished
+BR5,Mid Pinnacle,Victoria,Beware Reef,-37.82,148.79,TRUE,NA,192963,Fished
+BR6,Southern Flat,Victoria,Beware Reef,-37.82,148.79,FALSE,NA,192963,Fished
+BR7,Sth Pinnacle Beware Reef,Victoria,Beware Reef,-37.82,148.79,TRUE,NA,192963,Fished
+BR24,E. Cape Conran Bommie,Victoria,Beware Reef,-37.8,148.75,FALSE,NA,193275,Fished
+BR10,Nth East Beware Reef (Ridge Park),Victoria,Beware Reef,-37.82,148.78,TRUE,NA,193480,Fished
+BR11,Ridge Park,Victoria,Beware Reef,-37.82,148.78,TRUE,NA,193480,Fished
+BR3,Auckland,Victoria,Beware Reef,-37.82,148.78,TRUE,NA,193480,Fished
+BR27,Cape Conran Bay,Victoria,Beware Reef,-37.81,148.74,TRUE,NA,194689,Fished
+BR1,C. Conran Ramp Rock,Victoria,Beware Reef,-37.81,148.72,TRUE,NA,195757,Fished
+VIC3,Red Bluff,Victoria,Victoria - Eastern,-37.87,148.06,FALSE,NA,240301,Fished
+VIC57,Middle Groyne,Victoria,Gippsland Lakes,-37.88,147.96,FALSE,NA,247565,Fished
+VIC56,Sth Groyne,Victoria,Gippsland Lakes,-37.89,147.97,FALSE,NA,247652,Fished
+VIC9,Drew s Jetty,Victoria,Gippsland Lakes,-37.89,147.97,TRUE,NA,247652,Fished
+VIC8,North Groyne,Victoria,Gippsland Lakes,-37.89,147.96,TRUE,NA,248306,Fished
+VIC58,Nyerimilang Jetty,Victoria,Gippsland Lakes,-37.88,147.91,TRUE,NA,250867,Fished

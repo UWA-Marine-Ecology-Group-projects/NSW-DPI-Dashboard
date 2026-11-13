@@ -145,7 +145,13 @@ total_abundance_samples <- bruv_count %>%
 ## Species richness ----
 # TODO Make sure that all species are fish!!
 
+# Drop a genus "spp" record from a sample when a named species of the same
+# genus is also in that sample (same rule as the RLS/Dive data and DEW)
 species_richness_samples <- bruv_count %>%
+  dplyr::filter(count > 0) %>%
+  dplyr::group_by(sample_url, family, genus) %>%
+  dplyr::filter(!(species == "spp" & any(species != "spp"))) %>%
+  dplyr::ungroup() %>%
   distinct(sample_url, family, genus, species) %>%
   dplyr::group_by(sample_url) %>%
   dplyr::summarise(value = n()) %>%
@@ -986,4 +992,3 @@ nsw_bruv_data <- structure(
   ), class = "data")
 
 save(nsw_bruv_data, file = here::here("app_data/nsw_bruv_data.Rdata"))
-

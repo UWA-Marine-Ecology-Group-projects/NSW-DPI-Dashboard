@@ -447,7 +447,30 @@ metric_tab_body_ui <- function(metric_id, prefix = "bioregion", year_choices = N
 # ------------------------------ server ---------------------------------------
 
 server <- function(input, output, session) {
+
+  # BRUVS or Dive data ----
+  # The switch on the Bioregion Summary page: off = BRUVS, on = Dive (RLS and ATRC).
+  # Both lists have the same names, so the Bioregion page just uses dat().
+  dat <- reactive({
+    if (isTRUE(input$method)) nsw_rls_data else nsw_bruv_data
+  })
+
+  # What one sample is called in labels
+  sample_unit <- reactive({
+    if (isTRUE(input$method)) "transect" else "BRUV"
+  })
   
+  # Site name for map pop-ups and hover labels.
+  # BRUVS: sample = deployment, campaignid = campaign
+  # Dive:  sample = site name,  campaignid = program (RLS or ATRC)
+  site_popup <- function(df) {
+    paste0(
+      "<strong>", df$sample, "</strong><br>",
+      df$campaignid, "<br>",
+      "Date: ", format(as.Date(df$date)), "<br>"
+    )
+  }
+
   # Overview Value Boxes ----
   stats <- nsw_bruv_data$overview_stats[1, ]
   
@@ -497,6 +520,8 @@ server <- function(input, output, session) {
         color = "#063F5C",
         weight = 1,
         opacity = 1,
+        popup = site_popup(pts),
+        label = ~sample,
         group = "Sampling locations",
         options = pathOptions(pane = "points"),
         clusterOptions = markerClusterOptions(
@@ -529,11 +554,16 @@ server <- function(input, output, session) {
   # ===== EXPLORE BIOREGION =====
   
   # Populate bioregion dropdown ----
+  # Runs again when the BRUVS/Dive switch changes. Keeps the chosen
+  # bioregion if the other method has it, otherwise picks the first one.
   observe({
+    bioregion_choices <- sort(unique(dat()$bioregion_stats$bioregion))
+    current_bioregion <- isolate(input$bioregion)
+
     updateSelectizeInput(
       session, "bioregion",
-      choices = sort(unique(nsw_bruv_data$bioregion_stats$bioregion)),
-      selected = unique(nsw_bruv_data$bioregion_stats$bioregion)[1],
+      choices = bioregion_choices,
+      selected = if (isTruthy(current_bioregion) && current_bioregion %in% bioregion_choices) current_bioregion else bioregion_choices[1],
       server = TRUE
     )
   })
@@ -542,9 +572,9 @@ server <- function(input, output, session) {
   bioregion_deployments <- reactive({
     req(input$bioregion)
     
-    deployments <- nsw_bruv_data$bruv_metadata %>%
+    deployments <- dat()$bruv_metadata %>%
       dplyr::filter(bioregion %in% input$bioregion) %>%
-      dplyr::mutate(method = "BRUVs")
+      dplyr::mutate(method = if (isTRUE(input$method)) "UVC" else "BRUVs")
     
   })
   
@@ -581,11 +611,15 @@ server <- function(input, output, session) {
       
       addCircleMarkers(
         data = pts,
+        lng = ~longitude_dd, # needed for Dive data (not an sf object)
+        lat = ~latitude_dd,
         radius = 3,
         fillOpacity = 1,
-        color = "#063F5C",
+        color = unname(method_cols[pts$method]), # navy for BRUVs, purple for Dive
         weight = 1,
         opacity = 1,
+        popup = site_popup(pts),
+        label = ~sample,
         group = "Sampling locations",
         options = pathOptions(pane = "points"),
         clusterOptions = markerClusterOptions(
@@ -619,11 +653,20 @@ server <- function(input, output, session) {
   bioregion_stats <- reactive({
     req(input$bioregion)
     
-    nsw_bruv_data$bioregion_stats %>%
+    dat()$bioregion_stats %>%
       dplyr::filter(bioregion %in% input$bioregion)
     
   })
   
+  
+  # Value box titles change with the BRUVS/Dive switch
+  output$bioregion_num_bruvs_title <- renderText({
+    if (isTRUE(input$method)) "Transects" else "Deployments"
+  })
+  
+  output$bioregion_num_lengths_title <- renderText({
+    if (isTRUE(input$method)) "Fish sized" else "Fish measured"
+  })
   
   output$bioregion_num_bruvs <- renderText(comma(bioregion_stats()$num_bruvs))
   output$bioregion_num_fish <- renderText(comma(bioregion_stats()$num_fish))
@@ -649,7 +692,7 @@ server <- function(input, output, session) {
   ) {
     
     # ---- Data prep ----
-    df_raw <- nsw_bruv_data$top_species |>
+    df_raw <- dat()$top_species |>
       dplyr::filter(group == "bioregion") %>%
       dplyr::filter(bioregion == bioregion_name)
     
@@ -686,7 +729,7 @@ server <- function(input, output, session) {
     
     base_plot <- ggplot(plot_df, aes(x = average_abundance, y = label, fill = status)) +
       labs(
-        x     = "Average abundance per BRUV",
+        x     = paste("Average abundance per", sample_unit()),
         y     = NULL,
         title = title_lab,
         fill  = NULL
@@ -775,13 +818,13 @@ server <- function(input, output, session) {
   output$bioregion_tabset <- renderUI({
     req(input$bioregion)
     
-    year_choices <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+    year_choices <- dat()$top_50_most_abundant_species_bioregion_status_year %>%
       dplyr::filter(bioregion == input$bioregion) %>%
       dplyr::pull(year) %>%
       unique() %>%
       sort()
     
-    species_choices <- nsw_bruv_data$top_species %>%
+    species_choices <- dat()$top_species %>%
       dplyr::filter(group == "bioregion") %>%
       dplyr::filter(by_status == FALSE) %>%
       dplyr::filter(bioregion == input$bioregion) %>%
@@ -820,7 +863,7 @@ server <- function(input, output, session) {
   bioregion_metric_data <- function(metric_id) {
     req(input$bioregion)
     
-    nsw_bruv_data$metrics %>%
+    dat()$metrics %>%
       dplyr::filter(bioregion %in% input$bioregion) %>%
       dplyr::filter(metric == metric_id)
   }
@@ -1036,7 +1079,7 @@ server <- function(input, output, session) {
   bioregion_metric_map_data <- function(metric_id) {
     req(input$bioregion)
     
-    df <- nsw_bruv_data$metrics %>%
+    df <- dat()$metrics %>%
       dplyr::filter(bioregion %in% input$bioregion) %>%
       dplyr::filter(metric == metric_id)
       
@@ -1044,7 +1087,7 @@ server <- function(input, output, session) {
     # TODO include latitude and longitude in create metrics script
       df <- df %>%
         dplyr::left_join(
-          nsw_bruv_data$bruv_metadata %>%
+          dat()$bruv_metadata %>%
             dplyr::select(
               campaignid, sample, sample_url,
               latitude_dd,
@@ -1082,7 +1125,8 @@ server <- function(input, output, session) {
     pts <- pts %>%
       dplyr::mutate(
         popup_text = paste0(
-          "<strong>", get_metric_label(metric_id), "</strong><br>",
+          site_popup(pts),
+          "<br><strong>", get_metric_label(metric_id), "</strong><br>",
           "Value: ", round(value, 2), "<br>",
           "Status: ", status, "<br>"#,
           # "Latitude: ", round(latitude_dd, 5), "<br>",
@@ -1112,6 +1156,7 @@ server <- function(input, output, session) {
         weight = 1,
         opacity = 1,
         popup = ~popup_text,
+        label = ~sample,
         group = "Metric values",
         options = pathOptions(pane = "metric_points")
       ) %>%
@@ -1183,7 +1228,7 @@ server <- function(input, output, session) {
     
     req(bioregion_name, selected_year)
     
-    # df_raw <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+    # df_raw <- dat()$top_50_most_abundant_species_bioregion_status_year %>%
     #   dplyr::filter(bioregion == bioregion_name) %>%
     #   dplyr::filter(as.character(year) == as.character(selected_year))
     # 
@@ -1208,7 +1253,7 @@ server <- function(input, output, session) {
     #   dplyr::filter(display_name %in% top_species)
     
     # Get data for the TWO selected years
-    df_compare <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+    df_compare <- dat()$top_50_most_abundant_species_bioregion_status_year %>%
       dplyr::filter(
         bioregion == bioregion_name,
         as.character(year) %in% as.character(c(selected_year, comparison_year))
@@ -1338,7 +1383,7 @@ server <- function(input, output, session) {
       ) +
       scale_x_continuous(expand = expansion(mult = c(0, 0.05))) +
       labs(
-        x = "Average abundance per BRUV",
+        x = paste("Average abundance per", sample_unit()),
         y = NULL,
         title = title_lab,
         fill = NULL
@@ -1353,7 +1398,7 @@ server <- function(input, output, session) {
   # observe({
   #   req(input$bioregion)
   #   
-  #   df <- nsw_bruv_data$top_50_most_abundant_species_bioregion_status_year %>%
+  #   df <- dat()$top_50_most_abundant_species_bioregion_status_year %>%
   #     dplyr::filter(bioregion == input$bioregion)
   #   
   #   years <- sort(unique(df$year))
@@ -1477,7 +1522,7 @@ server <- function(input, output, session) {
     message(bioregion_name)
     message("CTI plots")
     
-    df_raw <- nsw_bruv_data$cti_top_10 %>%
+    df_raw <- dat()$cti_top_10 %>%
       dplyr::filter(bioregion == bioregion_name) %>%
       glimpse
     
@@ -1625,7 +1670,7 @@ server <- function(input, output, session) {
   #   
   #   req(bioregion_name)
   #   
-  #   df <- nsw_bruv_data$species_accumulation %>%
+  #   df <- dat()$species_accumulation %>%
   #     dplyr::filter(
   #       bioregion == bioregion_name
   #     )
@@ -1764,7 +1809,7 @@ server <- function(input, output, session) {
     # Filter data
     # -----------------------------
     
-    df <- nsw_bruv_data$species_accumulation %>%
+    df <- dat()$species_accumulation %>%
       dplyr::filter(
         bioregion == bioregion_name
       ) %>%
@@ -1979,7 +2024,7 @@ server <- function(input, output, session) {
           hover_text = paste0(
             "<b>", year_i, " \u2014 ", status_i, "</b>",
             "<br>",
-            "BRUV deployments: ",
+            "Number of ", sample_unit(), "s: ",
             deployments,
             "<br>",
             "Species richness: ",
@@ -2098,7 +2143,7 @@ server <- function(input, output, session) {
         
         xaxis = list(
           title = list(
-            text = "Number of BRUV deployments"
+            text = paste0("Number of ", sample_unit(), "s")
           ),
           
           rangemode = "tozero",
@@ -2354,7 +2399,7 @@ server <- function(input, output, session) {
     message(bioregion_name)
     message(paste("Species plots:", selected_species))
     
-    df <- nsw_bruv_data$top_50_abundance %>%
+    df <- dat()$top_50_abundance %>%
       dplyr::filter(bioregion == bioregion_name) %>%
       dplyr::filter(display_name %in% selected_species) %>%
       dplyr::mutate(year = as.Date(paste0(year, "-01", "-01"))) #%>% # Make year a real date
@@ -2393,7 +2438,7 @@ server <- function(input, output, session) {
       
       labs(
         x        = NULL,
-        y        = "Average MaxN"
+        y        = if (isTRUE(input$method)) "Average abundance per transect" else "Average MaxN"
       ) +
       scale_x_date(
         date_labels = "%Y",
@@ -2428,7 +2473,7 @@ server <- function(input, output, session) {
   bioregion_species_map_data <- function(selected_species, bioregion_name) {
     req(input$bioregion)
     
-    df <- nsw_bruv_data$top_50_abundance %>%
+    df <- dat()$top_50_abundance %>%
       dplyr::filter(bioregion == bioregion_name) %>%
       dplyr::filter(display_name %in% selected_species) %>%
       dplyr::mutate(year = as.Date(paste0(year, "-01", "-01"))) #%>% # Make year a real date
@@ -2437,7 +2482,7 @@ server <- function(input, output, session) {
     # TODO include latitude and longitude in create metrics script
     df <- df %>%
       dplyr::left_join(
-        nsw_bruv_data$bruv_metadata %>%
+        dat()$bruv_metadata %>%
           dplyr::select(
             campaignid, sample, sample_url,
             latitude_dd,
@@ -2474,13 +2519,14 @@ server <- function(input, output, session) {
     pts <- pts %>%
       dplyr::mutate(
         popup_text = paste0(
-          "<strong> MaxN</strong><br>",
+          site_popup(pts),
+          "<br><strong>", if (isTRUE(input$method)) "Abundance per transect" else "MaxN", "</strong><br>",
           "count: ", round(count, 2), "<br>",
           "Status: ", status, "<br>"
         )
       )
     
-    legend_title <- stringr::str_wrap("MaxN", width = 15)
+    legend_title <- stringr::str_wrap(if (isTRUE(input$method)) "Abundance per transect" else "MaxN", width = 15)
     legend_title <- gsub("\n", "<br>", legend_title)
     
     base_map(current_zoom = 6) %>%
@@ -2502,6 +2548,7 @@ server <- function(input, output, session) {
         weight = 1,
         opacity = 1,
         popup = ~popup_text,
+        label = ~sample,
         group = "Sampling points",
         options = pathOptions(pane = "metric_points")
       ) %>%
@@ -2543,7 +2590,7 @@ server <- function(input, output, session) {
   #   
   #   req(bioregion_name, selected_species)
   #   
-  #   df <- nsw_bruv_data$species_length_data %>%
+  #   df <- dat()$species_length_data %>%
   #     dplyr::filter(
   #       bioregion %in% bioregion_name,
   #       display_name %in% selected_species
@@ -2634,7 +2681,7 @@ server <- function(input, output, session) {
     # Filter data
     # ---------------------------------------------------------
     
-    df <- nsw_bruv_data$species_length_data %>%
+    df <- dat()$species_length_data %>%
       dplyr::filter(
         bioregion == bioregion_name,
         display_name == selected_species
@@ -2779,7 +2826,7 @@ server <- function(input, output, session) {
     
     if (facet_by_year) {
       
-      n_years <- nsw_bruv_data$species_length_data %>%
+      n_years <- dat()$species_length_data %>%
         dplyr::filter(
           bioregion == input$bioregion,
           display_name == selected_species
@@ -2864,7 +2911,7 @@ server <- function(input, output, session) {
   #   
   #   req(metric_id, bioregion_name)
   #   
-  #   df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+  #   df <- dat()$top_10_diagnostic_a_and_b %>%
   #     dplyr::filter(
   #       bioregion == bioregion_name,
   #       metric == metric_id
@@ -3010,7 +3057,7 @@ server <- function(input, output, session) {
     
     req(metric_id, bioregion_name)
     
-    df <- nsw_bruv_data$top_10_diagnostic_a_and_b %>%
+    df <- dat()$top_10_diagnostic_a_and_b %>%
       dplyr::filter(
         bioregion == bioregion_name,
         metric == metric_id
@@ -3118,13 +3165,17 @@ server <- function(input, output, session) {
     # ---------------------------------------------------------
     
     x_lab <- dplyr::case_when(
-      metric_id == "a20" ~ "Average abundance >20 cm per BRUV",
-      metric_id == "a30" ~ "Average abundance >30 cm per BRUV",
-      metric_id == "b20" ~ "Average biomass >20 cm per BRUV (kg)",
-      metric_id == "b30" ~ "Average biomass >30 cm per BRUV (kg)",
-      metric_id == "alt" ~ "Average abundance LT per BRUV",
-      metric_id == "blt" ~ "Average biomass LT per BRUV (kg)"
+      metric_id == "a20" ~ "Average abundance >20 cm per",
+      metric_id == "a30" ~ "Average abundance >30 cm per",
+      metric_id == "b20" ~ "Average biomass >20 cm per",
+      metric_id == "b30" ~ "Average biomass >30 cm per",
+      metric_id == "alt" ~ "Average abundance LT per",
+      metric_id == "blt" ~ "Average biomass LT per"
     )
+    
+    # Add BRUV or transect, and kg for biomass
+    x_lab <- paste(x_lab, sample_unit())
+    if (metric_id %in% c("b20", "b30", "blt")) x_lab <- paste(x_lab, "(kg)")
     
     
     # ---------------------------------------------------------

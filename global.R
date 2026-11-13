@@ -16,7 +16,8 @@ source("R/mod_park_summary.R") # defines mod_park_summary_ui/server (contains se
 source("R/theme.R")
 
 # Load data -----
-load("app_data/nsw_bruv_data.Rdata") # TODO add RLS here too
+load("app_data/nsw_bruv_data.Rdata") # BRUVS
+load("app_data/nsw_rls_data.Rdata")  # Dive (RLS and ATRC), made in dev/01_Download and format data for app/RLS/
 
 # Calculate average latitude for main map ----
 min_lat <- min(nsw_bruv_data$bruv_metadata$latitude_dd)

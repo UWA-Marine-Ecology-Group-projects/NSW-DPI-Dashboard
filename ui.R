@@ -229,6 +229,10 @@ tags$head(
     .pp-lab  { font-size:1.00rem; opacity:0.85; display:block; }
     .pp-val  { font-size:1.25rem; font-weight:700; margin-top:.25rem; display:block; }
     .pp-title-center .value-box-title { text-align:center; width:100%; }
+
+    /* BRUVS | switch | Dive */
+    .method-switch { display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; }
+    .method-switch .form-group, .method-switch .form-check { margin-bottom:0; }
   ")
   )
 ),
@@ -465,11 +469,12 @@ nav_panel(
       
       h5("Select data:"),
       
-      radioButtons(
-        inputId  = "method",
-        label    = "Choose a method to display: (TBA)",
-        choices  = c("BRUVS", "Dive"),
-        inline   = TRUE
+      # Method switch: off = BRUVS, on = Dive (RLS and ATRC)
+      tags$label("Choose a method to display:", class = "form-label"),
+      div(
+        class = "method-switch",
+        span("BRUVS"),
+        bslib::input_switch(id = "method", label = "Dive", value = FALSE)
       ),
       
       selectizeInput(
@@ -529,7 +534,7 @@ nav_panel(
               col_widths = c(6, 6),
             
             value_box(
-              title = "Deployments",
+              title = textOutput("bioregion_num_bruvs_title", inline = TRUE), # Deployments or Transects
               value = textOutput("bioregion_num_bruvs"),
               showcase = bs_icon("camera-video-fill", size = "1.5em"),
               class = "bioregion-value-box",
@@ -545,7 +550,7 @@ nav_panel(
             ),
             
             value_box(
-              title = "Fish measured",
+              title = textOutput("bioregion_num_lengths_title", inline = TRUE), # Fish measured or Fish sized
               value = textOutput("bioregion_num_lengths"),
               showcase = bs_icon("rulers", size = "1.25em"),
               class = "bioregion-value-box",
