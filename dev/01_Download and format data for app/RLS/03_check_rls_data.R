@@ -333,3 +333,4 @@ if (requireNamespace("writexl", quietly = TRUE)) {
   names(sheets) <- str_sub(names(sheets), 1, 31)
   writexl::write_xlsx(sheets, "outputs/rls_checks/rls_checks.xlsx")
 }
+
